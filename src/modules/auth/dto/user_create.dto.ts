@@ -1,6 +1,6 @@
 import { IsString, MaxLength, ValidateIf, Equals } from 'class-validator';
 
-export class UserSignupDto {
+export class UserCreateDto {
   @IsString()
   @MaxLength(20)
   username: string;
