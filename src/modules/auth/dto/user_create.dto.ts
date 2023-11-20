@@ -1,15 +1,19 @@
-import { IsString, MaxLength, ValidateIf, Equals } from 'class-validator';
+import { IsEmail, IsNotEmpty, MaxLength } from 'class-validator';
 
-export class UserCreateDto {
-  @IsString()
+export class UserRegistrationDto {
+  @IsNotEmpty()
   @MaxLength(20)
   username: string;
 
-  @IsString()
+  @IsNotEmpty()
+  @IsEmail()
+  email: string;
+
+  @IsNotEmpty()
   @MaxLength(20)
   password: string;
 
-  @IsString()
+  @IsNotEmpty()
   @MaxLength(20)
   retypedPassword: string;
 }
