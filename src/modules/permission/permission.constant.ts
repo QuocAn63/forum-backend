@@ -1,0 +1,12 @@
+export const POST_UPLOAD = 'POST_UPLOAD'
+export const POST_DELETE = 'POST_DELETE'
+export const POST_LIKE = 'POST_LIKE'
+export const POST_DISLIKE = 'POST_DISLIKE'
+export const POST_BOOKMARK = 'POST_BOOKMARK'
+
+export const COMMENT_CREATE = 'COMMENT_CREATE'
+export const COMMENT_LIKE = 'COMMENT_LIKE'
+export const COMMENT_DISLIKE = 'COMMENT_DISLIKE'
+export const COMMENT_DELETE = 'COMMENT_DELETE'
+
+export const USER_BAN = 'USER_BAN'

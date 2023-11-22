@@ -1,4 +1,5 @@
 import {
+  BaseEntity,
   Column,
   CreateDateColumn,
   Entity,
@@ -12,7 +13,7 @@ import { Role } from './role.entity';
 import { RolePermissions } from './rolePermissions.entity';
 
 @Entity()
-export class Permission {
+export class Permission extends BaseEntity {
   @PrimaryColumn({ type: 'varchar', length: 11 })
   id: string;
 

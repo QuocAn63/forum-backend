@@ -15,13 +15,13 @@ import { UserChangePasswordDto } from './dto/user_changePassword.dto';
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(User) private readonly authRepository: Repository<User>,
+    @InjectRepository(User) private readonly userRepository: Repository<User>,
     private jwtService: JwtService,
   ) {}
 
   async validateUser(userSigninDto: UserLoginDto): Promise<any> {
     const { username, password } = userSigninDto;
-    const user = await this.authRepository.findOne({ where: { username } });
+    const user = await this.userRepository.findOne({ where: { username } });
 
     if (!user) {
       throw new NotFoundException('User not found.');
@@ -31,7 +31,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid password.');
     }
 
-    await this.authRepository.save({
+    await this.userRepository.save({
       ...user,
       lastLoginAt: new Date().toISOString(),
     });
@@ -60,18 +60,39 @@ export class AuthService {
 
     const hashedPassword = await HashUtil.hash(password);
 
-    const newUser = this.authRepository.create({
+    const newUser = this.userRepository.create({
       ...userRegistrationDto,
       password: hashedPassword,
     });
 
-    await this.authRepository.save(newUser);
+    await this.userRepository.save(newUser);
   }
 
-  async changePassword(changePwDto: UserChangePasswordDto) {}
+  async changePassword(changePwDto: UserChangePasswordDto, username: string) {
+    const user = await this.userRepository.findOne({where: {username}})    
+    if(!user) {
+      throw new NotFoundException('User not found')
+    }
+    
+    const { oldPassword, newPassword, retypedNewPassword} = changePwDto
+    
+    if(newPassword !== retypedNewPassword) {
+      throw new BadRequestException('New password confirm not match.')
+    }
+    
+    if(oldPassword === newPassword) {
+      throw new BadRequestException('New password should not same the old password.')
+    }
+
+    if(!await HashUtil.compare(oldPassword, user.password)) {
+      throw new BadRequestException('Password not match.')
+    }
+
+    return  (await this.userRepository.save({...user, password: await HashUtil.hash(newPassword)})).id
+  }
 
   private async isUsernameAvailable(username: string): Promise<boolean> {
-    const user = await this.authRepository.findOne({
+    const user = await this.userRepository.findOne({
       where: { username },
       select: ['username'],
     });
@@ -80,7 +101,7 @@ export class AuthService {
   }
 
   private async isEmailAvailable(email: string): Promise<boolean> {
-    const user = await this.authRepository.findOne({
+    const user = await this.userRepository.findOne({
       where: { email },
       select: ['email'],
     });

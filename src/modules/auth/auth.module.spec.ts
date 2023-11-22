@@ -23,7 +23,7 @@ describe('AuthModule', () => {
           useFactory: async (configService: ConfigService) => ({
             secret: 'test',
             signOptions: {
-              expiresIn: '60s',
+              expiresIn: '7 days',
             },
           }),
           inject: [ConfigService],
