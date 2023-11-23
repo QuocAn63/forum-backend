@@ -10,6 +10,8 @@ import {
 
 @Entity()
 export class Role {
+  constructor(id: string, name: string, slug: string, isActive: boolean) {}
+
   @PrimaryColumn({ type: 'varchar', length: 11 })
   id: string;
 

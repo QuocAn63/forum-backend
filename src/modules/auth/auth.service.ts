@@ -11,6 +11,7 @@ import { Repository } from 'typeorm';
 import { HashUtil } from '../../common/utils/hash.util';
 import { JwtService } from '@nestjs/jwt';
 import { UserChangePasswordDto } from './dto/user_changePassword.dto';
+import { Role } from 'src/common/entities/role.entity';
 
 @Injectable()
 export class AuthService {
@@ -62,7 +63,7 @@ export class AuthService {
 
     const newUser = this.userRepository.create({
       ...userRegistrationDto,
-      password: hashedPassword,
+      password: hashedPassword
     });
 
     await this.userRepository.save(newUser);
