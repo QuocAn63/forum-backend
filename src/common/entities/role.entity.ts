@@ -7,7 +7,6 @@ import {
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { RolePermissions } from './rolePermissions.entity';
 
 @Entity()
 export class Role {
@@ -37,7 +36,6 @@ export class Role {
   })
   updatedAt: string;
 
-  @OneToMany(() => RolePermissions, (rolePermissions) => rolePermissions.role)
-  @JoinTable()
-  rolePermissions: RolePermissions[];
+  @Column({ type: 'text' })
+  permissions: string;
 }

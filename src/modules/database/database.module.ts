@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         schema: configService.getOrThrow('DB_SCHEMA'),
         autoLoadEntities: true,
         synchronize: configService.getOrThrow('DB_SYCHRONIZE'),
+        migrations: [join(__dirname, '..', 'migrations/**/*.{js,ts}')],
       }),
     }),
   ],

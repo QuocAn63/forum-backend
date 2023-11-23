@@ -3,18 +3,13 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinTable,
-  ManyToMany,
-  OneToMany,
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Role } from './role.entity';
-import { RolePermissions } from './rolePermissions.entity';
 
 @Entity()
 export class Permission extends BaseEntity {
-  @PrimaryColumn({ type: 'varchar', length: 11 })
+  @PrimaryColumn({ type: 'varchar', length: 40 })
   id: string;
 
   @Column({ type: 'text' })
@@ -36,10 +31,4 @@ export class Permission extends BaseEntity {
     nullable: true,
   })
   updatedAt: string;
-
-  @OneToMany(
-    () => RolePermissions,
-    (rolePermissions) => rolePermissions.permission,
-  )
-  rolePermissions: RolePermissions[];
 }

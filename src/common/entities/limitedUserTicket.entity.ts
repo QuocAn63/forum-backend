@@ -2,17 +2,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  Generated,
-  JoinTable,
-  ManyToMany,
   ManyToOne,
-  OneToMany,
-  PrimaryColumn,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from './user.entity';
-import { Permission } from './permission.entity';
 
 @Entity()
 export class LimitedUserTicket {
@@ -42,7 +36,6 @@ export class LimitedUserTicket {
   @Column({ type: 'boolean', default: false })
   isExpired: boolean;
 
-  @ManyToMany(() => Permission)
-  @JoinTable({ name: 'user_limited_permission' })
-  limitedPermissions: Permission[];
+  @Column({ type: 'text' })
+  limitedPermissions: string;
 }

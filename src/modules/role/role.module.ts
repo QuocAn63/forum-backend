@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Role } from '../../common/entities/role.entity';
-import { RolePermissions } from '../../common/entities/rolePermissions.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Role, RolePermissions])],
+  imports: [TypeOrmModule.forFeature([Role])],
   exports: [],
 })
 export class RoleModule {}
