@@ -1,4 +1,5 @@
 import {
+  BaseEntity,
   Column,
   CreateDateColumn,
   Entity,
@@ -9,9 +10,7 @@ import {
 } from 'typeorm';
 
 @Entity()
-export class Role {
-  constructor(id: string, name: string, slug: string, isActive: boolean) {}
-
+export class Role extends BaseEntity {
   @PrimaryColumn({ type: 'varchar', length: 11 })
   id: string;
 

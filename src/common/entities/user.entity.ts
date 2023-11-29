@@ -5,11 +5,13 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
+  BaseEntity,
+  JoinColumn,
 } from 'typeorm';
 import { Role } from './role.entity';
 
 @Entity()
-export class User {
+export class User extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -31,11 +33,11 @@ export class User {
   @Column({ type: 'enum', enum: ['MALE', 'FEMALE'], nullable: true })
   gender: string;
 
-  @Column({ type: 'boolean', default: true })
-  isActive: boolean;
-
   @Column({ type: 'timestamp', nullable: true })
   lastLoginAt: string;
+
+  @Column({ type: 'boolean', default: false })
+  isEmailVerified: boolean;
 
   @CreateDateColumn({
     type: 'timestamp',
@@ -51,6 +53,10 @@ export class User {
   })
   updatedAt: string;
 
+  @Column({ type: 'varchar', default: 'USER' })
+  roleId: string;
+
   @ManyToOne(() => Role)
+  @JoinColumn({ name: 'roleId' })
   role: Role;
 }

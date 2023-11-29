@@ -11,6 +11,7 @@ import { LimitedUserTicketModule } from '../limitedUserTicket/limitedUserTicket.
 import { PostModule } from '../post/post.module';
 import { CommentModule } from '../comment/comment.module';
 import { AuthModule } from '../auth/auth.module';
+import { MailSenderModule } from '../mailSender/mailSender.module';
 
 @Module({
   imports: [
@@ -25,10 +26,11 @@ import { AuthModule } from '../auth/auth.module';
     CommentModule,
     PermissionModule,
     LimitedUserTicketModule,
+    MailSenderModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {
-  constructor(private dataSource: DataSource) {}
+  constructor() {}
 }

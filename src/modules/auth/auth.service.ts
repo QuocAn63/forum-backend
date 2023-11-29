@@ -1,8 +1,10 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { UserLoginDto, UserRegistrationDto } from './dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -12,7 +14,11 @@ import { HashUtil } from '../../common/utils/hash.util';
 import { JwtService } from '@nestjs/jwt';
 import { UserChangePasswordDto } from './dto/user_changePassword.dto';
 import { Role } from 'src/common/entities/role.entity';
+import { AuthGuard } from './auth.guard';
+import { MailSenderService } from '../mailSender/mailSender.service';
+import { nanoid } from 'nanoid';
 
+@UseGuards(AuthGuard)
 @Injectable()
 export class AuthService {
   constructor(
@@ -22,7 +28,12 @@ export class AuthService {
 
   async validateUser(userSigninDto: UserLoginDto): Promise<any> {
     const { username, password } = userSigninDto;
-    const user = await this.userRepository.findOne({ where: { username } });
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.role', 'role')
+      .select(['user', 'role.id', 'role.permissions'])
+      .where(`user.username = :username`, { username })
+      .getOne();
 
     if (!user) {
       throw new NotFoundException('User not found.');
@@ -32,17 +43,27 @@ export class AuthService {
       throw new UnauthorizedException('Invalid password.');
     }
 
+    if (!user.isEmailVerified) {
+      throw new ForbiddenException('User got deactived.');
+    }
+
     await this.userRepository.save({
       ...user,
       lastLoginAt: new Date().toISOString(),
     });
+
     const { password: _, id } = user;
-    const accessToken = await this.jwtService.signAsync({ username, id });
+    const accessToken = await this.jwtService.signAsync({
+      username,
+      id,
+      role: user.role,
+    });
 
     return { message: 'Login success', token: accessToken };
   }
 
   async createUser(userRegistrationDto: UserRegistrationDto): Promise<any> {
+    const emailVerificationToken = nanoid();
     const { username, email, password, retypedPassword } = userRegistrationDto;
 
     if (password !== retypedPassword) {
@@ -63,33 +84,40 @@ export class AuthService {
 
     const newUser = this.userRepository.create({
       ...userRegistrationDto,
-      password: hashedPassword
+      password: hashedPassword,
     });
 
     await this.userRepository.save(newUser);
   }
 
   async changePassword(changePwDto: UserChangePasswordDto, username: string) {
-    const user = await this.userRepository.findOne({where: {username}})    
-    if(!user) {
-      throw new NotFoundException('User not found')
-    }
-    
-    const { oldPassword, newPassword, retypedNewPassword} = changePwDto
-    
-    if(newPassword !== retypedNewPassword) {
-      throw new BadRequestException('New password confirm not match.')
-    }
-    
-    if(oldPassword === newPassword) {
-      throw new BadRequestException('New password should not same the old password.')
+    const user = await this.userRepository.findOne({ where: { username } });
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
 
-    if(!await HashUtil.compare(oldPassword, user.password)) {
-      throw new BadRequestException('Password not match.')
+    const { oldPassword, newPassword, retypedNewPassword } = changePwDto;
+
+    if (newPassword !== retypedNewPassword) {
+      throw new BadRequestException('New password confirm not match.');
     }
 
-    return  (await this.userRepository.save({...user, password: await HashUtil.hash(newPassword)})).id
+    if (oldPassword === newPassword) {
+      throw new BadRequestException(
+        'New password should not same the old password.',
+      );
+    }
+
+    if (!(await HashUtil.compare(oldPassword, user.password))) {
+      throw new BadRequestException('Password not match.');
+    }
+
+    return (
+      await this.userRepository.save({
+        ...user,
+        password: await HashUtil.hash(newPassword),
+      })
+    ).id;
   }
 
   private async isUsernameAvailable(username: string): Promise<boolean> {

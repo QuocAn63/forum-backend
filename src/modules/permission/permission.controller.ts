@@ -1,13 +1,18 @@
-import { Body, Controller, Post } from "@nestjs/common";
-import { PermissionService } from "./permission.service";
-import { PermissionCreateDto } from "./dto/permission_create.dto";
+import { Body, Controller, Get, Post } from '@nestjs/common';
+import { PermissionService } from './permission.service';
+import { PermissionCreateDto } from './dto/permission_create.dto';
 
-@Controller('permission')
+@Controller('permissions')
 export class PermissionController {
-    constructor(private permissionService: PermissionService) {}
+  constructor(private permissionService: PermissionService) {}
 
-    @Post()
-    async createPermission(@Body() createPermissionDto: PermissionCreateDto) {
-        return await this.permissionService.store(createPermissionDto)
-    }
+  @Get()
+  async getListOfPermission() {
+    return await this.permissionService.index();
+  }
+
+  @Post()
+  async createPermission(@Body() createPermissionDto: PermissionCreateDto) {
+    return await this.permissionService.store(createPermissionDto);
+  }
 }
