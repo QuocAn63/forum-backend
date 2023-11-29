@@ -9,9 +9,12 @@ import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
+import { User } from 'src/common/entities/user.entity';
 
 export const IS_PUBLIC_KEY = 'isPublic';
 export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
+
+export type AuthUser = Pick<User, "id" | "username" | "role" | "email"> 
 
 @Injectable()
 export class AuthGuard implements CanActivate {

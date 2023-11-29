@@ -13,16 +13,16 @@ import { Repository } from 'typeorm';
 import { HashUtil } from '../../common/utils/hash.util';
 import { JwtService } from '@nestjs/jwt';
 import { UserChangePasswordDto } from './dto/user_changePassword.dto';
-import { Role } from 'src/common/entities/role.entity';
 import { AuthGuard } from './auth.guard';
 import { MailSenderService } from '../mailSender/mailSender.service';
-import { nanoid } from 'nanoid';
+import * as moment from 'moment';
 
 @UseGuards(AuthGuard)
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
+    private mailSenderService: MailSenderService,
     private jwtService: JwtService,
   ) {}
 
@@ -43,10 +43,6 @@ export class AuthService {
       throw new UnauthorizedException('Invalid password.');
     }
 
-    if (!user.isEmailVerified) {
-      throw new ForbiddenException('User got deactived.');
-    }
-
     await this.userRepository.save({
       ...user,
       lastLoginAt: new Date().toISOString(),
@@ -57,13 +53,13 @@ export class AuthService {
       username,
       id,
       role: user.role,
+      email: user.email
     });
 
     return { message: 'Login success', token: accessToken };
   }
 
-  async createUser(userRegistrationDto: UserRegistrationDto): Promise<any> {
-    const emailVerificationToken = nanoid();
+  async createUser(userRegistrationDto: UserRegistrationDto, domain: string): Promise<any> {
     const { username, email, password, retypedPassword } = userRegistrationDto;
 
     if (password !== retypedPassword) {
@@ -76,6 +72,7 @@ export class AuthService {
     }
 
     const isEmailAvailable = await this.isEmailAvailable(email);
+    
     if (!isEmailAvailable) {
       throw new BadRequestException('Email already exist.');
     }
@@ -88,6 +85,34 @@ export class AuthService {
     });
 
     await this.userRepository.save(newUser);
+    await this.mailSenderService.sendVerifyEmail(newUser, domain)
+  }
+
+  async verifyUser(token: string) {
+    if(!token) {
+      throw new BadRequestException("Token is empty.")
+    }
+
+    const verificationEmailData = await this.mailSenderService.findOne(token)
+    
+    if(!verificationEmailData) {
+      throw new NotFoundException("Token not found")
+    }
+
+    const current = moment()
+    const isLated = current.isAfter(moment(verificationEmailData.expiredAt))
+
+    if(isLated) {
+      throw new BadRequestException("Token expired.")
+    }
+
+    const user = await this.userRepository.update({
+      id: verificationEmailData.userId
+    }, {
+      isEmailVerified: true
+    })
+
+    console.log(user)
   }
 
   async changePassword(changePwDto: UserChangePasswordDto, username: string) {
