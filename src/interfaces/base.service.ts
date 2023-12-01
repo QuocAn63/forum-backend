@@ -7,7 +7,7 @@ export class BaseService<T extends BaseEntity, R extends Repository<T>>
 {
   constructor(protected repository: R) {}
 
-  index(page = 1, size = 20): Promise<T[]> {
+  async index(page = 1, size = 20): Promise<T[]> {
     return this.repository.find({ take: size, skip: (page - 1) * size });
   }
 

@@ -17,10 +17,14 @@ import { AuthGuard, AuthUser, Public } from './auth.guard';
 import { Request } from 'express';
 import { User } from './user.decorator';
 import { MailSenderService } from '../mailSender/mailSender.service';
+import { Domain } from 'src/common/decorators/domain';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService, private mailSenderService: MailSenderService) {}
+  constructor(
+    private authService: AuthService,
+    private mailSenderService: MailSenderService,
+  ) {}
 
   @Public()
   @Post('login')
@@ -32,28 +36,35 @@ export class AuthController {
   @Public()
   @Post('register')
   async register(
-    @Req() request: Request,
+    @Domain() domain: string,
     @Body() UserRegistrationDto: UserRegistrationDto,
   ): Promise<any> {
-    return await this.authService.createUser(UserRegistrationDto, request.baseUrl);
+    return await this.authService.createUser(UserRegistrationDto, domain);
   }
 
   @Get('verify')
   @UseGuards(AuthGuard)
   async verifyUser(@Query() queries: any) {
-    const token = queries['token']
+    const token = queries['token'];
 
-    return this.authService.verifyUser(token)
+    return this.authService.verifyUser(token);
   }
 
   @Post('resend')
   @UseGuards(AuthGuard)
-  async resendVerifyEmail(@User() user: AuthUser, @Req() request: Request) {
-    return await this.mailSenderService.resendVerificationEmail(user, request.baseUrl)
+  async resendVerifyMail(@User() user: AuthUser, @Domain() domain: URL) {
+    return await this.mailSenderService.resendVerificationMail(
+      user,
+      domain.origin,
+    );
   }
 
   @Put('changepassword')
-  async changePassword(@Body() changePasswordDto: UserChangePasswordDto, @Req() req: Request) {
-    return await this.authService.changePassword(changePasswordDto, req['user']['username'])
+  @UseGuards(AuthGuard)
+  async changePassword(
+    @Body() changePasswordDto: UserChangePasswordDto,
+    @User() user: AuthUser,
+  ) {
+    return await this.authService.changePassword(changePasswordDto, user);
   }
 }

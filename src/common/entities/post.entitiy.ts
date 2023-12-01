@@ -1,8 +1,10 @@
 import {
+  BaseEntity,
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -13,11 +15,15 @@ import { UserBookmark } from './userBookmark';
 import { UserLikesOrDislikesPost } from './userLikesOrDislikesPost.entity';
 
 @Entity()
-export class Post {
+export class Post extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column()
+  authorId: string;
+
   @ManyToOne(() => User)
+  @JoinColumn({ name: 'authorId' })
   author: User;
 
   @Column('text')
@@ -60,5 +66,5 @@ export class Post {
   userBookmarks: UserBookmark[];
 
   @OneToMany(() => UserLikesOrDislikesPost, (userReact) => userReact.post)
-  userReacts: UserBookmark[];
+  userReacts: UserLikesOrDislikesPost[];
 }

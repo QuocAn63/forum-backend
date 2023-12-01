@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -9,7 +9,7 @@ import { MailSenderModule } from '../mailSender/mailSender.module';
 
 @Module({
   imports: [
-    MailSenderModule,
+    forwardRef(() => MailSenderModule),
     TypeOrmModule.forFeature([User]),
     JwtModule.registerAsync({
       global: true,
@@ -25,5 +25,6 @@ import { MailSenderModule } from '../mailSender/mailSender.module';
   ],
   providers: [AuthService],
   controllers: [AuthController],
+  exports: [AuthModule, AuthService],
 })
 export class AuthModule {}

@@ -1,10 +1,11 @@
 import {
   BadRequestException,
-  ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
   UseGuards,
+  forwardRef,
 } from '@nestjs/common';
 import { UserLoginDto, UserRegistrationDto } from './dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,7 +14,7 @@ import { Repository } from 'typeorm';
 import { HashUtil } from '../../common/utils/hash.util';
 import { JwtService } from '@nestjs/jwt';
 import { UserChangePasswordDto } from './dto/user_changePassword.dto';
-import { AuthGuard } from './auth.guard';
+import { AuthGuard, AuthUser } from './auth.guard';
 import { MailSenderService } from '../mailSender/mailSender.service';
 import * as moment from 'moment';
 
@@ -22,6 +23,7 @@ import * as moment from 'moment';
 export class AuthService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @Inject(forwardRef(() => MailSenderService))
     private mailSenderService: MailSenderService,
     private jwtService: JwtService,
   ) {}
@@ -53,13 +55,16 @@ export class AuthService {
       username,
       id,
       role: user.role,
-      email: user.email
+      email: user.email,
     });
 
     return { message: 'Login success', token: accessToken };
   }
 
-  async createUser(userRegistrationDto: UserRegistrationDto, domain: string): Promise<any> {
+  async createUser(
+    userRegistrationDto: UserRegistrationDto,
+    domain: string,
+  ): Promise<any> {
     const { username, email, password, retypedPassword } = userRegistrationDto;
 
     if (password !== retypedPassword) {
@@ -72,7 +77,7 @@ export class AuthService {
     }
 
     const isEmailAvailable = await this.isEmailAvailable(email);
-    
+
     if (!isEmailAvailable) {
       throw new BadRequestException('Email already exist.');
     }
@@ -85,39 +90,50 @@ export class AuthService {
     });
 
     await this.userRepository.save(newUser);
-    await this.mailSenderService.sendVerifyEmail(newUser, domain)
+    await this.mailSenderService.sendVerifyMail(newUser, domain);
   }
 
   async verifyUser(token: string) {
-    if(!token) {
-      throw new BadRequestException("Token is empty.")
+    if (!token) {
+      throw new BadRequestException('Token is empty.');
     }
 
-    const verificationEmailData = await this.mailSenderService.findOne(token)
-    
-    if(!verificationEmailData) {
-      throw new NotFoundException("Token not found")
+    const verificationEmailData = await this.mailSenderService.findOne(token);
+
+    if (!verificationEmailData) {
+      throw new NotFoundException('Token not found');
     }
 
-    const current = moment()
-    const isLated = current.isAfter(moment(verificationEmailData.expiredAt))
+    const current = moment();
+    const isLated = current.isAfter(moment(verificationEmailData.expiredAt));
 
-    if(isLated) {
-      throw new BadRequestException("Token expired.")
+    if (isLated) {
+      throw new BadRequestException('Token expired.');
     }
 
-    const user = await this.userRepository.update({
-      id: verificationEmailData.userId
-    }, {
-      isEmailVerified: true
-    })
+    await this.userRepository.update(
+      {
+        id: verificationEmailData.userId,
+      },
+      {
+        isEmailVerified: true,
+      },
+    );
 
-    console.log(user)
+    return `Verified email of ${verificationEmailData.userId}.`;
   }
 
-  async changePassword(changePwDto: UserChangePasswordDto, username: string) {
-    const user = await this.userRepository.findOne({ where: { username } });
-    if (!user) {
+  async isEmailVerified(user: AuthUser): Promise<boolean> {
+    return (
+      await this.userRepository.findOne({ where: { username: user.username } })
+    ).isEmailVerified;
+  }
+
+  async changePassword(changePwDto: UserChangePasswordDto, user: AuthUser) {
+    const userResult = await this.userRepository.findOne({
+      where: { username: user.username },
+    });
+    if (!userResult) {
       throw new NotFoundException('User not found');
     }
 
@@ -133,13 +149,13 @@ export class AuthService {
       );
     }
 
-    if (!(await HashUtil.compare(oldPassword, user.password))) {
+    if (!(await HashUtil.compare(oldPassword, userResult.password))) {
       throw new BadRequestException('Password not match.');
     }
 
     return (
       await this.userRepository.save({
-        ...user,
+        ...userResult,
         password: await HashUtil.hash(newPassword),
       })
     ).id;
