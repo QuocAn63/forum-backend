@@ -11,12 +11,8 @@ export const permissionConstants = [
         description: 'User can delete other user posts.',
       },
       {
-        suffix: 'LIKE',
-        description: 'User can like posts.',
-      },
-      {
-        suffix: 'DISLIKE',
-        description: 'User can dislike posts.',
+        suffix: 'RATE',
+        description: 'User can rate posts.',
       },
       {
         suffix: 'BOOKMARK',
@@ -36,12 +32,8 @@ export const permissionConstants = [
         description: 'User can delete other users comment.',
       },
       {
-        suffix: 'LIKE',
-        description: 'User can like comments.',
-      },
-      {
-        suffix: 'DISLIKE',
-        description: 'User can dislike comments.',
+        suffix: 'RATE',
+        description: 'User can rate comments.',
       },
     ],
   },

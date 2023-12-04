@@ -7,14 +7,12 @@ import {
   Post,
   Put,
   Query,
-  Request as Req,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UserRegistrationDto, UserLoginDto } from './dto';
 import { UserChangePasswordDto } from './dto/user_changePassword.dto';
 import { AuthGuard, AuthUser, Public } from './auth.guard';
-import { Request } from 'express';
 import { User } from './user.decorator';
 import { MailSenderService } from '../mailSender/mailSender.service';
 import { Domain } from 'src/common/decorators/domain';
@@ -36,10 +34,13 @@ export class AuthController {
   @Public()
   @Post('register')
   async register(
-    @Domain() domain: string,
+    @Domain() domain: URL,
     @Body() UserRegistrationDto: UserRegistrationDto,
   ): Promise<any> {
-    return await this.authService.createUser(UserRegistrationDto, domain);
+    return await this.authService.createUser(
+      UserRegistrationDto,
+      domain.origin,
+    );
   }
 
   @Get('verify')

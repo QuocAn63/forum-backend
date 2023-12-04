@@ -18,6 +18,8 @@ import { join } from 'path';
         database: configService.getOrThrow('DB_DBNAME'),
         schema: configService.getOrThrow('DB_SCHEMA'),
         autoLoadEntities: true,
+        logging: true,
+        logger: 'advanced-console',
         synchronize: configService.getOrThrow('DB_SYCHRONIZE'),
         migrations: [join(__dirname, '..', 'migrations/**/*.{js,ts}')],
       }),

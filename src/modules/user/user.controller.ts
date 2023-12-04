@@ -10,14 +10,19 @@ export class UserController {
 
   @Public()
   @Get(':username')
-  getUserProfile(@Param() params: any) {
-    return this.userService.getUserProfile(params.username);
+  getUserProfile(@Param('username') username: string) {
+    return this.userService.getUserProfile(username);
   }
 
   @UseGuards(AuthGuard, RoleGuard)
   @Roles('ADMIN')
   @Get()
-  getListOfUser() {
+  getUsers() {
     return this.userService.index();
+  }
+
+  @Get(':username/posts')
+  getUserPosts(@Param('username') username: string) {
+    return this.userService.getUserPosts(username);
   }
 }

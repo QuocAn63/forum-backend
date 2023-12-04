@@ -1,16 +1,15 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from '../../common/entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MailSenderModule } from '../mailSender/mailSender.module';
+import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [
     forwardRef(() => MailSenderModule),
-    TypeOrmModule.forFeature([User]),
+    UserModule,
     JwtModule.registerAsync({
       global: true,
       imports: [ConfigModule],

@@ -1,13 +1,16 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Comment } from 'src/common/entities/comment.entity';
-import { Post } from 'src/common/entities/post.entitiy';
 import { User } from 'src/common/entities/user.entity';
 import { UserLikesOrDislikesComment } from 'src/common/entities/userLikesOrDislikesComment.entity';
+import { PostModule } from '../post/post.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Comment, User, UserLikesOrDislikesComment, Post]),
+    forwardRef(() => PostModule),
+    forwardRef(() => User),
+    TypeOrmModule.forFeature([Comment, UserLikesOrDislikesComment]),
   ],
+  exports: [CommentModule, TypeOrmModule],
 })
 export class CommentModule {}

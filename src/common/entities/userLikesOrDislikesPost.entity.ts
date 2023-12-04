@@ -32,7 +32,7 @@ export class UserLikesOrDislikesPost {
   })
   updatedAt: string;
 
-  @Column('enum', { enum: ['LIKE', 'DISLIKE'] })
+  @Column('enum', { enum: ['LIKE', 'DISLIKE', 'NONE'] })
   action: string;
 
   @ManyToOne(() => User)

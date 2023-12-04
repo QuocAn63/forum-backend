@@ -11,14 +11,13 @@ import { UserLoginDto, UserRegistrationDto } from './dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../common/entities/user.entity';
 import { Repository } from 'typeorm';
-import { HashUtil } from '../../common/utils/hash.util';
+import { HashUtil } from '../../utils/hash.util';
 import { JwtService } from '@nestjs/jwt';
 import { UserChangePasswordDto } from './dto/user_changePassword.dto';
-import { AuthGuard, AuthUser } from './auth.guard';
+import { AuthUser } from './auth.guard';
 import { MailSenderService } from '../mailSender/mailSender.service';
 import * as moment from 'moment';
 
-@UseGuards(AuthGuard)
 @Injectable()
 export class AuthService {
   constructor(

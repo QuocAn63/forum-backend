@@ -1,22 +1,22 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Post } from 'src/common/entities/post.entitiy';
 import { PostController } from './post.controller';
 import { PostService } from './post.service';
-import { User } from 'src/common/entities/user.entity';
 import { UserBookmark } from 'src/common/entities/userBookmark';
 import { UserLikesOrDislikesPost } from 'src/common/entities/userLikesOrDislikesPost.entity';
+import { CommentModule } from '../comment/comment.module';
+import { UserModule } from '../user/user.module';
+import { CommentService } from '../comment/comment.sevice';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      Post,
-      User,
-      UserBookmark,
-      UserLikesOrDislikesPost,
-    ]),
+    forwardRef(() => UserModule),
+    forwardRef(() => CommentModule),
+    TypeOrmModule.forFeature([Post, UserBookmark, UserLikesOrDislikesPost]),
   ],
   controllers: [PostController],
-  providers: [PostService],
+  providers: [CommentService, PostService],
+  exports: [PostModule, TypeOrmModule, PostService],
 })
 export class PostModule {}

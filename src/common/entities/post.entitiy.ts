@@ -7,6 +7,7 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  PrimaryColumn,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -16,10 +17,10 @@ import { UserLikesOrDislikesPost } from './userLikesOrDislikesPost.entity';
 
 @Entity()
 export class Post extends BaseEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn({ length: 11 })
   id: string;
 
-  @Column()
+  @Column({ select: false })
   authorId: string;
 
   @ManyToOne(() => User)
@@ -38,9 +39,6 @@ export class Post extends BaseEntity {
   @Column('enum', { enum: ['DRAFT', 'PUBLIC', 'PRIVATE'] })
   status: string;
 
-  @Column('boolean', { default: false })
-  isDeleted: boolean;
-
   @CreateDateColumn({
     type: 'timestamp',
     default: 'now()',
@@ -57,7 +55,6 @@ export class Post extends BaseEntity {
 
   @DeleteDateColumn({
     type: 'timestamp',
-    default: 'now()',
     nullable: true,
   })
   deletedAt: string;
