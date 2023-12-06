@@ -7,24 +7,22 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryColumn,
-  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from './user.entity';
 import { UserBookmark } from './userBookmark';
 import { UserLikesOrDislikesPost } from './userLikesOrDislikesPost.entity';
+import { Comment } from './comment.entity';
 
 @Entity()
 export class Post extends BaseEntity {
   @PrimaryColumn({ length: 11 })
   id: string;
 
-  @Column({ select: false })
-  authorId: string;
-
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'authorId' })
+  @JoinColumn()
   author: User;
 
   @Column('text')
@@ -64,4 +62,7 @@ export class Post extends BaseEntity {
 
   @OneToMany(() => UserLikesOrDislikesPost, (userReact) => userReact.post)
   userReacts: UserLikesOrDislikesPost[];
+
+  @OneToMany(() => Comment, (comment) => comment.post)
+  comments: Comment[];
 }

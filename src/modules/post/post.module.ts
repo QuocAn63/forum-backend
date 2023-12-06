@@ -7,7 +7,7 @@ import { UserBookmark } from 'src/common/entities/userBookmark';
 import { UserLikesOrDislikesPost } from 'src/common/entities/userLikesOrDislikesPost.entity';
 import { CommentModule } from '../comment/comment.module';
 import { UserModule } from '../user/user.module';
-import { CommentService } from '../comment/comment.sevice';
+import { CommentService } from '../comment/comment.service';
 
 @Module({
   imports: [
@@ -16,7 +16,7 @@ import { CommentService } from '../comment/comment.sevice';
     TypeOrmModule.forFeature([Post, UserBookmark, UserLikesOrDislikesPost]),
   ],
   controllers: [PostController],
-  providers: [CommentService, PostService],
+  providers: [CommentService, PostService, CommentService],
   exports: [PostModule, TypeOrmModule, PostService],
 })
 export class PostModule {}

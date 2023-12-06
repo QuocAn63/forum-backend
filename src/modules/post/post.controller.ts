@@ -15,11 +15,16 @@ import { Permissions } from '../permission/permission.decorator';
 import { User } from '../auth/user.decorator';
 import { PostUpdateDto } from './dto/post_update.dto';
 import { PostRateDto } from './dto/post_rate.dto';
+import { CommentCreateDto } from '../comment/dto/comment_create.dto';
+import { CommentService } from '../comment/comment.service';
 
 @UseGuards(AuthGuard)
 @Controller('posts')
 export class PostController {
-  constructor(private postService: PostService) {}
+  constructor(
+    private postService: PostService,
+    private commentService: CommentService,
+  ) {}
 
   @Get('deleted')
   async findDeletePosts(@User() user: AuthUser) {
@@ -55,6 +60,16 @@ export class PostController {
     @Body() data: PostRateDto,
   ) {
     return this.postService.ratePost(user, id, data.action);
+  }
+
+  @Post(':id/comment')
+  @Permissions('COMMENT_UPLOAD')
+  async comment(
+    @User() user: AuthUser,
+    @Param('id') id: string,
+    @Body() data: CommentCreateDto,
+  ) {
+    return await this.commentService.storeComment(user, id, data);
   }
 
   @Patch(':id/restore')

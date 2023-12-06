@@ -25,14 +25,6 @@ export class UserService extends BaseService<User, Repository<User>> {
   }
 
   async getUserPosts(username: string): Promise<any> {
-    const userId = await this.getUserIdByUsername(username);
-
-    if (!userId) return new NotFoundException('Can not find user.');
-
-    return await this.postService.findPostsOfUser(userId);
-  }
-
-  private async getUserIdByUsername(username: string): Promise<string> {
-    return (await this.repository.findOne({ where: { username } })).id;
+    return await this.postService.findPostsOfUser(username);
   }
 }

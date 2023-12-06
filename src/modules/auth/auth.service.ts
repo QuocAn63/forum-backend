@@ -92,12 +92,15 @@ export class AuthService {
     await this.mailSenderService.sendVerifyMail(newUser, domain);
   }
 
-  async verifyUser(token: string) {
+  async verifyUser(user: AuthUser, token: string) {
     if (!token) {
       throw new BadRequestException('Token is empty.');
     }
 
-    const verificationEmailData = await this.mailSenderService.findOne(token);
+    const verificationEmailData = await this.mailSenderService.findOne(
+      user.id,
+      token,
+    );
 
     if (!verificationEmailData) {
       throw new NotFoundException('Token not found');

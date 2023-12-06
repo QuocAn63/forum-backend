@@ -45,10 +45,10 @@ export class AuthController {
 
   @Get('verify')
   @UseGuards(AuthGuard)
-  async verifyUser(@Query() queries: any) {
+  async verifyUser(@Query() queries: any, @User() user: AuthUser) {
     const token = queries['token'];
 
-    return this.authService.verifyUser(token);
+    return this.authService.verifyUser(user, token);
   }
 
   @Post('resend')

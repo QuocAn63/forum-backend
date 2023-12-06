@@ -9,11 +9,11 @@ import { BaseService } from 'src/interfaces/base.service';
 import { IsNull, Not, Repository } from 'typeorm';
 import { PostCreateDto } from './dto/post_create.dto';
 import { AuthUser } from '../auth/auth.guard';
-import { Comment } from 'src/common/entities/comment.entity';
 import { PostUpdateDto } from './dto/post_update.dto';
 import { SlugifyUtil } from 'src/utils/slugify.util';
 import { UserLikesOrDislikesPost } from 'src/common/entities/userLikesOrDislikesPost.entity';
 import { nanoid } from 'nanoid';
+import { CommentService } from '../comment/comment.service';
 
 @Injectable()
 export class PostService extends BaseService<Post, Repository<Post>> {
@@ -21,69 +21,43 @@ export class PostService extends BaseService<Post, Repository<Post>> {
     @InjectRepository(Post) private postRepo: Repository<Post>,
     @InjectRepository(UserLikesOrDislikesPost)
     private rateRepo: Repository<UserLikesOrDislikesPost>,
-    @InjectRepository(Comment) private commentRepo: Repository<Comment>,
+    private commentService: CommentService,
   ) {
     super(postRepo);
   }
 
   async findBySlug(slug: string): Promise<any> {
-    const post = await this.repository
-      .createQueryBuilder('post')
+    const post = await this.detailTypePost()
       .where({ slug, status: 'PUBLIC' })
-      .leftJoinAndSelect('post.author', 'author')
-      .select(['post', 'author.username', 'author.displayName'])
-      .loadRelationCountAndMap(
-        'post.usersLike',
-        'post.userReacts',
-        'ur',
-        (qb) => qb.andWhere({ action: 'LIKE' }),
-      )
-      .loadRelationCountAndMap(
-        'post.usersDislike',
-        'post.userReacts',
-        'ur',
-        (qb) => qb.andWhere({ action: 'DISLIKE' }),
-      )
-      .loadRelationCountAndMap('post.userBookmarks', 'post.userBookmarks')
+      .select([
+        'post',
+        'author.username',
+        'author.id',
+        'author.displayName',
+        'comments',
+      ])
       .getOne();
 
     if (!post) throw new NotFoundException('Post not found.');
 
-    const comments =
-      (await this.commentRepo.findBy({ post: { id: post.id } })) || [];
-
-    return { post, comments };
+    return post;
   }
 
   async findMany(): Promise<any> {
-    return this.repository
-      .createQueryBuilder('posts')
+    return this.listTypePost()
       .where({ status: 'PUBLIC' })
-      .leftJoinAndSelect('posts.author', 'author')
-      .select(['posts', 'author.username', 'author.displayName'])
-      .loadRelationCountAndMap(
-        'posts.usersLike',
-        'posts.userReacts',
-        'ur',
-        (qb) => qb.andWhere({ action: 'LIKE' }),
-      )
-      .loadRelationCountAndMap(
-        'posts.usersDislike',
-        'posts.userReacts',
-        'ur',
-        (qb) => qb.andWhere({ action: 'DISLIKE' }),
-      )
-      .loadRelationCountAndMap('posts.userBookmarks', 'posts.userBookmarks')
+      .select(['posts', 'author.username', 'author.displayName', 'author.id'])
       .getMany();
   }
 
   async findManyDeleted(user: AuthUser): Promise<any> {
-    return this.repository
-      .createQueryBuilder('posts')
+    return this.listTypePost()
       .where({
         deletedAt: Not(IsNull()),
-        authorId: user.id,
+        author: { id: user.id },
       })
+      .withDeleted()
+      .select(['posts', 'author.username', 'author.displayName', 'author.id'])
       .getMany();
   }
 
@@ -108,10 +82,8 @@ export class PostService extends BaseService<Post, Repository<Post>> {
     data: PostUpdateDto,
   ): Promise<any> {
     const post = await this.repository.findOne({
-      where: { id, authorId: user.id },
+      where: { id, author: { id: user.id } },
     });
-
-    console.log(`${id} ${user.id}`);
 
     if (!post)
       throw new BadRequestException(
@@ -138,7 +110,10 @@ export class PostService extends BaseService<Post, Repository<Post>> {
   }
 
   async restorePost(user: AuthUser, id: string): Promise<any> {
-    const result = await this.repository.restore({ authorId: user.id, id });
+    const result = await this.repository.restore({
+      author: { id: user.id },
+      id,
+    });
 
     if (!result.affected)
       throw new BadRequestException(
@@ -148,32 +123,21 @@ export class PostService extends BaseService<Post, Repository<Post>> {
     return result.affected;
   }
 
-  async findPostsOfUser(userId: string): Promise<any> {
-    const posts = await this.repository
-      .createQueryBuilder('posts')
-      .where({ authorId: userId, status: 'PUBLIC' })
-      .leftJoinAndSelect('posts.author', 'author')
-      .select(['posts', 'author.username', 'author.displayName'])
-      .loadRelationCountAndMap(
-        'posts.usersLike',
-        'posts.userReacts',
-        'ur',
-        (qb) => qb.andWhere({ action: 'LIKE' }),
-      )
-      .loadRelationCountAndMap(
-        'posts.usersDislike',
-        'posts.userReacts',
-        'ur',
-        (qb) => qb.andWhere({ action: 'DISLIKE' }),
-      )
-      .loadRelationCountAndMap('posts.userBookmarks', 'posts.userBookmarks')
+  async findPostsOfUser(username: string): Promise<any> {
+    console.log(username);
+    const posts = await this.listTypePost()
+      .where({ author: { username }, status: 'PUBLIC' })
+      .select(['posts', 'author.username', 'author.displayName', 'author.id'])
       .getMany();
 
     return posts;
   }
 
   async softDeletePost(user: AuthUser, id: string): Promise<any> {
-    const result = await this.repository.softDelete({ authorId: user.id, id });
+    const result = await this.repository.softDelete({
+      author: { id: user.id },
+      id,
+    });
 
     if (!result.affected)
       throw new BadRequestException(
@@ -191,5 +155,51 @@ export class PostService extends BaseService<Post, Repository<Post>> {
     });
 
     return { post: rate.postId, action: rate.action };
+  }
+
+  private detailTypePost(alias = 'post') {
+    return this.repository
+      .createQueryBuilder(alias)
+      .leftJoinAndSelect(`${alias}.author`, 'author')
+      .loadRelationCountAndMap(
+        `${alias}.likesCount`,
+        `${alias}.userReacts`,
+        'ur',
+        (qb) => qb.andWhere({ action: 'LIKE' }),
+      )
+      .loadRelationCountAndMap(
+        `${alias}.dislikesCount`,
+        `${alias}.userReacts`,
+        'ur',
+        (qb) => qb.andWhere({ action: 'DISLIKE' }),
+      )
+      .loadRelationCountAndMap(
+        `${alias}.bookmarksCount`,
+        `${alias}.userBookmarks`,
+      )
+      .leftJoinAndSelect(`${alias}.comments`, 'comments');
+  }
+
+  private listTypePost(alias = 'posts') {
+    return this.repository
+      .createQueryBuilder(alias)
+      .leftJoinAndSelect(`${alias}.author`, 'author')
+      .loadRelationCountAndMap(
+        `${alias}.likesCount`,
+        `${alias}.userReacts`,
+        'ur',
+        (qb) => qb.andWhere({ action: 'LIKE' }),
+      )
+      .loadRelationCountAndMap(
+        `${alias}.dislikesCount`,
+        `${alias}.userReacts`,
+        'ur',
+        (qb) => qb.andWhere({ action: 'DISLIKE' }),
+      )
+      .loadRelationCountAndMap(
+        `${alias}.bookmarksCount`,
+        `${alias}.userBookmarks`,
+      )
+      .loadRelationCountAndMap(`${alias}.commentsCount`, `${alias}.comments`);
   }
 }

@@ -4,8 +4,8 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -19,13 +19,12 @@ export class Comment extends BaseEntity {
   id: string;
 
   @ManyToOne(() => User)
+  @JoinColumn()
   author: User;
 
   @ManyToOne(() => Post)
+  @JoinColumn()
   post: Post;
-
-  @ManyToOne(() => Comment)
-  parent: Comment;
 
   @Column('text')
   content: string;
@@ -46,14 +45,11 @@ export class Comment extends BaseEntity {
 
   @DeleteDateColumn({
     type: 'timestamp',
-    default: 'now()',
     nullable: true,
   })
   deletedAt: string;
 
-  @Column('boolean', { default: false })
-  isDeleted: boolean;
-
-  @OneToMany(() => UserLikesOrDislikesComment, (userReact) => userReact.comment)
-  userReacts: UserLikesOrDislikesComment[];
+  // @OneToMany(() => UserLikesOrDislikesComment, (userReact) => userReact.comment)
+  // @JoinColumn()
+  // userReacts: UserLikesOrDislikesComment[];
 }

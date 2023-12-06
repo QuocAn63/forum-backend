@@ -99,7 +99,7 @@ export class MailSenderService {
     await this.sendVerifyMail(user, domain);
   }
 
-  async findOne(token: string) {
-    return this.emailVerificationTokenRepo.findOneBy({ token });
+  async findOne(userId: string, token: string) {
+    return this.emailVerificationTokenRepo.findOneBy({ userId, token });
   }
 }

@@ -4,6 +4,7 @@ import { Comment } from 'src/common/entities/comment.entity';
 import { User } from 'src/common/entities/user.entity';
 import { UserLikesOrDislikesComment } from 'src/common/entities/userLikesOrDislikesComment.entity';
 import { PostModule } from '../post/post.module';
+import { CommentService } from './comment.service';
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { PostModule } from '../post/post.module';
     forwardRef(() => User),
     TypeOrmModule.forFeature([Comment, UserLikesOrDislikesComment]),
   ],
-  exports: [CommentModule, TypeOrmModule],
+  providers: [CommentService],
+  exports: [CommentModule, TypeOrmModule, CommentService],
 })
 export class CommentModule {}
