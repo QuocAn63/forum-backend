@@ -14,7 +14,9 @@ import { User } from 'src/common/entities/user.entity';
 export const IS_PUBLIC_KEY = 'isPublic';
 export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 
-export type AuthUser = Pick<User, 'id' | 'username' | 'role' | 'email'>;
+export type AuthUser = Pick<User, 'id' | 'username' | 'role' | 'email'> & {
+  limitedPermissions?: string[];
+};
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -44,9 +46,11 @@ export class AuthGuard implements CanActivate {
         secret: this.configService.getOrThrow('AUTH_SECRET'),
       });
 
+      payload.role.permissions = payload.role.permissions.split(',');
+      payload.limitedPermissions = payload.limitedPermissions?.split(',');
+
       request['user'] = payload;
     } catch (err) {
-      console.log(err);
       throw new UnauthorizedException(err);
     }
 

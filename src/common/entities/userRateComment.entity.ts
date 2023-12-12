@@ -11,7 +11,7 @@ import { User } from './user.entity';
 import { Comment } from './comment.entity';
 
 @Entity()
-export class UserLikesOrDislikesComment {
+export class CommentRating {
   @PrimaryColumn()
   userId: string;
 

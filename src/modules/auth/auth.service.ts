@@ -4,37 +4,31 @@ import {
   Injectable,
   NotFoundException,
   UnauthorizedException,
-  UseGuards,
   forwardRef,
 } from '@nestjs/common';
 import { UserLoginDto, UserRegistrationDto } from './dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { User } from '../../common/entities/user.entity';
-import { Repository } from 'typeorm';
 import { HashUtil } from '../../utils/hash.util';
 import { JwtService } from '@nestjs/jwt';
 import { UserChangePasswordDto } from './dto/user_changePassword.dto';
 import { AuthUser } from './auth.guard';
 import { MailSenderService } from '../mailSender/mailSender.service';
 import * as moment from 'moment';
+import { UserService } from '../user/user.service';
+import { LimitedUserTicketService } from '../limitedUserTicket/limitedUserTicket.service';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(User) private readonly userRepository: Repository<User>,
+    private userService: UserService,
     @Inject(forwardRef(() => MailSenderService))
     private mailSenderService: MailSenderService,
+    private limitedTicketService: LimitedUserTicketService,
     private jwtService: JwtService,
   ) {}
 
   async validateUser(userSigninDto: UserLoginDto): Promise<any> {
     const { username, password } = userSigninDto;
-    const user = await this.userRepository
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.role', 'role')
-      .select(['user', 'role.id', 'role.permissions'])
-      .where(`user.username = :username`, { username })
-      .getOne();
+    const user = await this.userService.findUserByUsername(username);
 
     if (!user) {
       throw new NotFoundException('User not found.');
@@ -44,17 +38,22 @@ export class AuthService {
       throw new UnauthorizedException('Invalid password.');
     }
 
-    await this.userRepository.save({
-      ...user,
-      lastLoginAt: new Date().toISOString(),
-    });
+    await this.userService.updateUserLastLoginTime(user.id);
 
     const { password: _, id } = user;
+
+    // Get user limited permissions
+    await this.limitedTicketService.checkAndUpdateLimitedTime(user);
+    const limitedPermissions =
+      (await this.limitedTicketService.getCurrentTicket(user))
+        ?.limitedPermissions || '';
+    console.log(limitedPermissions);
     const accessToken = await this.jwtService.signAsync({
       username,
       id,
       role: user.role,
       email: user.email,
+      limitedPermissions,
     });
 
     return { message: 'Login success', token: accessToken };
@@ -62,7 +61,7 @@ export class AuthService {
 
   async createUser(
     userRegistrationDto: UserRegistrationDto,
-    domain: string,
+    url: string,
   ): Promise<any> {
     const { username, email, password, retypedPassword } = userRegistrationDto;
 
@@ -70,26 +69,26 @@ export class AuthService {
       throw new BadRequestException('Password confirm does not match.');
     }
 
-    const isUsernameAvailable = await this.isUsernameAvailable(username);
+    const isUsernameAvailable =
+      await this.userService.isUsernameAvailable(username);
     if (!isUsernameAvailable) {
       throw new BadRequestException('User already exist.');
     }
 
-    const isEmailAvailable = await this.isEmailAvailable(email);
-
+    const isEmailAvailable = await this.userService.isEmailAvailable(email);
     if (!isEmailAvailable) {
       throw new BadRequestException('Email already exist.');
     }
 
     const hashedPassword = await HashUtil.hash(password);
 
-    const newUser = this.userRepository.create({
-      ...userRegistrationDto,
-      password: hashedPassword,
-    });
+    const newUser = await this.userService.createNewUser(
+      username,
+      email,
+      hashedPassword,
+    );
 
-    await this.userRepository.save(newUser);
-    await this.mailSenderService.sendVerifyMail(newUser, domain);
+    await this.mailSenderService.sendVerifyMail(newUser, url);
   }
 
   async verifyUser(user: AuthUser, token: string) {
@@ -113,28 +112,17 @@ export class AuthService {
       throw new BadRequestException('Token expired.');
     }
 
-    await this.userRepository.update(
-      {
-        id: verificationEmailData.userId,
-      },
-      {
-        isEmailVerified: true,
-      },
+    await this.userService.updateUserMailVerification(
+      verificationEmailData.userId,
+      true,
     );
 
     return `Verified email of ${verificationEmailData.userId}.`;
   }
 
-  async isEmailVerified(user: AuthUser): Promise<boolean> {
-    return (
-      await this.userRepository.findOne({ where: { username: user.username } })
-    ).isEmailVerified;
-  }
-
   async changePassword(changePwDto: UserChangePasswordDto, user: AuthUser) {
-    const userResult = await this.userRepository.findOne({
-      where: { username: user.username },
-    });
+    const userResult = await this.userService.findUserByUsername(user.username);
+
     if (!userResult) {
       throw new NotFoundException('User not found');
     }
@@ -155,29 +143,9 @@ export class AuthService {
       throw new BadRequestException('Password not match.');
     }
 
-    return (
-      await this.userRepository.save({
-        ...userResult,
-        password: await HashUtil.hash(newPassword),
-      })
-    ).id;
-  }
-
-  private async isUsernameAvailable(username: string): Promise<boolean> {
-    const user = await this.userRepository.findOne({
-      where: { username },
-      select: ['username'],
-    });
-
-    return user === null;
-  }
-
-  private async isEmailAvailable(email: string): Promise<boolean> {
-    const user = await this.userRepository.findOne({
-      where: { email },
-      select: ['email'],
-    });
-
-    return user === null;
+    return this.userService.updateUserPassword(
+      user,
+      await HashUtil.hash(newPassword),
+    );
   }
 }

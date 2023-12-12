@@ -7,10 +7,15 @@ import { CommentCreateDto } from './dto/comment_create.dto';
 import { AuthUser } from '../auth/auth.guard';
 import { User } from 'src/common/entities/user.entity';
 import { Post } from 'src/common/entities/post.entitiy';
+import { CommentRating } from 'src/common/entities/userRateComment.entity';
 
 @Injectable()
 export class CommentService extends BaseService<Comment, Repository<Comment>> {
-  constructor(@InjectRepository(Comment) commentRepo: Repository<Comment>) {
+  constructor(
+    @InjectRepository(Comment) commentRepo: Repository<Comment>,
+    @InjectRepository(CommentRating)
+    private commentRatingRepo: Repository<CommentRating>,
+  ) {
     super(commentRepo);
   }
 
@@ -30,27 +35,59 @@ export class CommentService extends BaseService<Comment, Repository<Comment>> {
       content: commentCreateDto.content,
     });
 
-    // if (commentCreateDto.parentCommentId) {
-    //   commentObj.parentId = commentCreateDto.parentCommentId;
-    // }
+    if (commentCreateDto.parentId) {
+      const parentCommentObj = new Comment();
+      parentCommentObj.id = commentCreateDto.parentId;
+      commentObj.parent = parentCommentObj;
+    }
 
     const comment = await commentObj.save();
 
     return comment;
   }
 
-  async findPostComments(id: string) {
-    return this.repository
-      .createQueryBuilder('comments')
-      .where({ post: { id } })
-      .leftJoinAndSelect('comments.author', 'author')
+  async findPostComments(slug: string) {
+    return this.listTypeComment()
+      .where({ post: { slug } })
       .select([
         'comments',
-        'author.username',
+        'replies',
         'author.id',
+        'author.username',
         'author.displayName',
       ])
-      .orderBy('comments.createdAt', 'DESC')
       .getMany();
+  }
+
+  async rateComment(user: AuthUser, id: string, action: string) {
+    return this.commentRatingRepo.save({
+      user: { id: user.id },
+      comment: { id },
+      action,
+    });
+  }
+
+  async deleteComment(user: AuthUser, id: string) {
+    return this.repository.softDelete({ id, author: { id: user.id } });
+  }
+
+  private listTypeComment() {
+    return this.repository
+      .createQueryBuilder('comments')
+      .leftJoinAndSelect('comments.post', 'post')
+      .leftJoinAndSelect('comments.author', 'author')
+      .leftJoinAndSelect('comments.children', 'replies')
+      .loadRelationCountAndMap(
+        'comments.likesCount',
+        'comments.commentRatings',
+        'cr',
+        (cr) => cr.andWhere({ action: 'LIKE' }),
+      )
+      .loadRelationCountAndMap(
+        'comments.dislikesCount',
+        'comments.commentRatings',
+        'cr',
+        (cr) => cr.andWhere({ action: 'DISLIKE' }),
+      );
   }
 }

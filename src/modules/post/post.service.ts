@@ -11,7 +11,7 @@ import { PostCreateDto } from './dto/post_create.dto';
 import { AuthUser } from '../auth/auth.guard';
 import { PostUpdateDto } from './dto/post_update.dto';
 import { SlugifyUtil } from 'src/utils/slugify.util';
-import { UserLikesOrDislikesPost } from 'src/common/entities/userLikesOrDislikesPost.entity';
+import { UserRatePost } from 'src/common/entities/UserRatePost.entity';
 import { nanoid } from 'nanoid';
 import { CommentService } from '../comment/comment.service';
 
@@ -19,8 +19,7 @@ import { CommentService } from '../comment/comment.service';
 export class PostService extends BaseService<Post, Repository<Post>> {
   constructor(
     @InjectRepository(Post) private postRepo: Repository<Post>,
-    @InjectRepository(UserLikesOrDislikesPost)
-    private rateRepo: Repository<UserLikesOrDislikesPost>,
+    @InjectRepository(UserRatePost) private rateRepo: Repository<UserRatePost>,
     private commentService: CommentService,
   ) {
     super(postRepo);
@@ -29,13 +28,7 @@ export class PostService extends BaseService<Post, Repository<Post>> {
   async findBySlug(slug: string): Promise<any> {
     const post = await this.detailTypePost()
       .where({ slug, status: 'PUBLIC' })
-      .select([
-        'post',
-        'author.username',
-        'author.id',
-        'author.displayName',
-        'comments',
-      ])
+      .select(['post', 'author.username', 'author.id', 'author.displayName'])
       .getOne();
 
     if (!post) throw new NotFoundException('Post not found.');
@@ -124,7 +117,6 @@ export class PostService extends BaseService<Post, Repository<Post>> {
   }
 
   async findPostsOfUser(username: string): Promise<any> {
-    console.log(username);
     const posts = await this.listTypePost()
       .where({ author: { username }, status: 'PUBLIC' })
       .select(['posts', 'author.username', 'author.displayName', 'author.id'])
@@ -177,7 +169,7 @@ export class PostService extends BaseService<Post, Repository<Post>> {
         `${alias}.bookmarksCount`,
         `${alias}.userBookmarks`,
       )
-      .leftJoinAndSelect(`${alias}.comments`, 'comments');
+      .loadRelationCountAndMap(`${alias}.commentsCount`, `${alias}.comments`);
   }
 
   private listTypePost(alias = 'posts') {

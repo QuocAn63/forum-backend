@@ -3,16 +3,22 @@ import { MailSenderService } from './mailSender.service';
 import { MailSenderController } from './mailSender.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EmailVerificationToken } from 'src/common/entities/emailVerificationToken.entity';
-import { AuthModule } from '../auth/auth.module';
-import { AuthService } from '../auth/auth.service';
 import { User } from 'src/common/entities/user.entity';
+import { UserModule } from '../user/user.module';
+import { UserService } from '../user/user.service';
+import { PostService } from '../post/post.service';
+import { PostModule } from '../post/post.module';
+import { CommentService } from '../comment/comment.service';
+import { CommentModule } from '../comment/comment.module';
 
 @Module({
   imports: [
-    forwardRef(() => AuthModule),
+    forwardRef(() => UserModule),
+    forwardRef(() => PostModule),
+    forwardRef(() => CommentModule),
     TypeOrmModule.forFeature([User, EmailVerificationToken]),
   ],
-  providers: [AuthService, MailSenderService],
+  providers: [UserService, MailSenderService, PostService, CommentService],
   controllers: [MailSenderController],
   exports: [MailSenderModule, MailSenderService],
 })

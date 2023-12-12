@@ -30,16 +30,13 @@ export class RoleService extends BaseService<Role, Repository<Role>> {
 
       const activePermissions = (
         await this.permissionService.getListOfActivePermissions(permissions)
-      )
-        .map((permission) => permission.id)
-        .join(',');
+      ).join(',');
 
       const result = await this.repository.update(
         { id: role.id },
         { permissions: activePermissions },
       );
       results = { ...results, id: role.id, updates: result.raw.permissions };
-      console.log(results);
     });
 
     return results;

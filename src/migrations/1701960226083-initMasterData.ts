@@ -1,8 +1,8 @@
-import { permissionConstants } from '../modules/permission/permission.constant';
-import { roleConstants } from '../modules/role/role.constant';
+import { permissionConstants } from '../../src/modules/permission/permission.constant';
+import { roleConstants } from '../../src/modules/role/role.constant';
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class GenerateMasterData1701702198288 implements MigrationInterface {
+export class InitMasterData1701960226083 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     console.log('Inserting master data for Permission table.');
     permissionConstants.forEach(({ key, actions }) => {

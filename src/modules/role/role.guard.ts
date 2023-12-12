@@ -6,7 +6,7 @@ export class RoleGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const role = this.reflector.getAllAndOverride<string>('Role', [
+    const roles = this.reflector.getAllAndOverride<string[]>('Roles', [
       context.getHandler(),
       context.getClass(),
     ]);
@@ -15,10 +15,11 @@ export class RoleGuard implements CanActivate {
       context.getClass(),
     ]);
     const request = context.switchToHttp().getRequest();
-    const perms = request.user.role.permissions.split(',') as string[];
-    const isRoleAllowed = role === request.user.role.id;
+    const userPerms = request.user.role.permissions as string[];
+    const userLimitedPerms = request.user.limitedPermissions as string[];
+    const isRoleAllowed = roles.includes(request.user.role.id);
 
-    if (role === undefined) {
+    if (!roles.length) {
       return false;
     }
 
@@ -26,7 +27,12 @@ export class RoleGuard implements CanActivate {
       return true;
     }
 
-    const isPermAllowed = permissions.every((perm) => perms.includes(perm));
+    const isPermAllowed =
+      permissions.every((perm) => userPerms.includes(perm)) &&
+      !(
+        userLimitedPerms &&
+        permissions.some((perm) => userLimitedPerms.includes(perm))
+      );
 
     return isRoleAllowed && isPermAllowed;
   }

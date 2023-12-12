@@ -15,6 +15,6 @@ import { CommentModule } from '../comment/comment.module';
   ],
   providers: [PostService, UserService],
   controllers: [UserController],
-  exports: [UserModule, TypeOrmModule],
+  exports: [UserModule, UserService, TypeOrmModule],
 })
 export class UserModule {}

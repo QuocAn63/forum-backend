@@ -7,6 +7,7 @@ import {
   ManyToOne,
   BaseEntity,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { Role } from './role.entity';
 

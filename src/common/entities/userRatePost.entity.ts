@@ -1,4 +1,5 @@
 import {
+  BaseEntity,
   Column,
   CreateDateColumn,
   Entity,
@@ -11,7 +12,7 @@ import { User } from './user.entity';
 import { Post } from './post.entitiy';
 
 @Entity()
-export class UserLikesOrDislikesPost {
+export class UserRatePost extends BaseEntity {
   @PrimaryColumn()
   userId: string;
 

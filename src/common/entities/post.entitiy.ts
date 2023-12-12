@@ -7,13 +7,11 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from './user.entity';
-import { UserBookmark } from './userBookmark';
-import { UserLikesOrDislikesPost } from './userLikesOrDislikesPost.entity';
+import { UserRatePost } from './UserRatePost.entity';
 import { Comment } from './comment.entity';
 
 @Entity()
@@ -25,7 +23,7 @@ export class Post extends BaseEntity {
   @JoinColumn()
   author: User;
 
-  @Column('text')
+  @Column({ type: 'text', unique: true })
   slug: string;
 
   @Column('varchar', { length: 100 })
@@ -57,11 +55,8 @@ export class Post extends BaseEntity {
   })
   deletedAt: string;
 
-  @OneToMany(() => UserBookmark, (userBookmark) => userBookmark.post)
-  userBookmarks: UserBookmark[];
-
-  @OneToMany(() => UserLikesOrDislikesPost, (userReact) => userReact.post)
-  userReacts: UserLikesOrDislikesPost[];
+  @OneToMany(() => UserRatePost, (userReact) => userReact.post)
+  userReacts: UserRatePost[];
 
   @OneToMany(() => Comment, (comment) => comment.post)
   comments: Comment[];

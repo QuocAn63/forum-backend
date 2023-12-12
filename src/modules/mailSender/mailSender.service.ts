@@ -15,7 +15,7 @@ import { EmailVerificationToken } from '../../common/entities/emailVerificationT
 import { Repository } from 'typeorm';
 import { verificationEmailHtml } from './templates/verification.html';
 import { AuthUser } from '../auth/auth.guard';
-import { AuthService } from '../auth/auth.service';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class MailSenderService {
@@ -24,7 +24,7 @@ export class MailSenderService {
   constructor(
     @InjectRepository(EmailVerificationToken)
     private emailVerificationTokenRepo: Repository<EmailVerificationToken>,
-    @Inject(forwardRef(() => AuthService)) private authSerivce: AuthService,
+    @Inject(forwardRef(() => UserService)) private userService: UserService,
     private configService: ConfigService,
   ) {
     this.transporter = createTransport({
@@ -89,7 +89,7 @@ export class MailSenderService {
   }
 
   async resendVerificationMail(user: AuthUser, domain: string) {
-    const isEmailVerified = await this.authSerivce.isEmailVerified(user);
+    const isEmailVerified = await this.userService.isUserEmailVerified(user);
 
     if (isEmailVerified) {
       throw new BadRequestException("User's email is already verified.");

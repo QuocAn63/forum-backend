@@ -17,7 +17,7 @@ export class PermissionService extends BaseService<
   }
 
   async getListOfActivePermissions(permissions: string[]) {
-    return this.repository.find({
+    const result = await this.repository.find({
       where: {
         id: In(permissions),
         isActive: true,
@@ -26,5 +26,7 @@ export class PermissionService extends BaseService<
         id: true,
       },
     });
+
+    return result.map((permission) => permission.id);
   }
 }

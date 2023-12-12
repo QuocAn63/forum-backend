@@ -6,12 +6,13 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from './user.entity';
 import { Post } from './post.entitiy';
-import { UserLikesOrDislikesComment } from './userLikesOrDislikesComment.entity';
+import { CommentRating } from './userRateComment.entity';
 
 @Entity()
 export class Comment extends BaseEntity {
@@ -22,9 +23,16 @@ export class Comment extends BaseEntity {
   @JoinColumn()
   author: User;
 
-  @ManyToOne(() => Post)
+  @ManyToOne(() => Post, (post) => post.comments)
   @JoinColumn()
   post: Post;
+
+  @ManyToOne(() => Comment)
+  @JoinColumn()
+  parent: Comment;
+
+  @OneToMany(() => Comment, (comment) => comment.parent)
+  children: Comment[];
 
   @Column('text')
   content: string;
@@ -49,7 +57,7 @@ export class Comment extends BaseEntity {
   })
   deletedAt: string;
 
-  // @OneToMany(() => UserLikesOrDislikesComment, (userReact) => userReact.comment)
-  // @JoinColumn()
-  // userReacts: UserLikesOrDislikesComment[];
+  @OneToMany(() => CommentRating, (userReact) => userReact.comment)
+  @JoinColumn()
+  commentRatings: CommentRating[];
 }

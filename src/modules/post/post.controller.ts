@@ -17,8 +17,11 @@ import { PostUpdateDto } from './dto/post_update.dto';
 import { PostRateDto } from './dto/post_rate.dto';
 import { CommentCreateDto } from '../comment/dto/comment_create.dto';
 import { CommentService } from '../comment/comment.service';
+import { RoleGuard } from '../role/role.guard';
+import { Roles } from '../role/role.decorator';
 
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, RoleGuard)
+@Roles('ADMIN', 'USER')
 @Controller('posts')
 export class PostController {
   constructor(
@@ -41,6 +44,12 @@ export class PostController {
   @Get()
   async findMany() {
     return await this.postService.findMany();
+  }
+
+  @Public()
+  @Get(':slug/comments')
+  async findPostComments(@Param('slug') slug: string) {
+    return await this.commentService.findPostComments(slug);
   }
 
   @Post()

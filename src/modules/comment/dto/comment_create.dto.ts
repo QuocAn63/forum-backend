@@ -3,7 +3,7 @@ import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 export class CommentCreateDto {
   @IsOptional()
   @IsString()
-  parentCommentId: string;
+  parentId: string;
 
   @IsNotEmpty()
   @IsString()
