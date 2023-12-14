@@ -40,9 +40,7 @@ export class AuthController {
 
   @Get('verify')
   @UseGuards(AuthGuard)
-  async verifyUser(@Query() queries: any, @User() user: AuthUser) {
-    const token = queries['token'];
-
+  async verifyUser(@Query('token') token: string, @User() user: AuthUser) {
     return this.authService.verifyUser(user, token);
   }
 

@@ -19,11 +19,15 @@ import { DataSourceProvider } from '../../../test/helpers/testDataSource.provide
 import { LimitedUserTicket } from '../limitedUserTicket/entities/limitedUserTicket.entity';
 import { PermissionService } from '../permission/permission.service';
 
+class MockMailSender {
+  async sendVerifyMail(...data: any) {
+    return true;
+  }
+}
 class MockingService {}
 
 describe('AuthService', () => {
   let authService: AuthService;
-  let app: INestApplication;
   let moduleRef: TestingModule;
 
   beforeAll(async () => {
@@ -45,7 +49,7 @@ describe('AuthService', () => {
       providers: [
         DataSourceProvider,
         UserService,
-        { provide: MailSenderService, useClass: MockingService },
+        { provide: MailSenderService, useClass: MockMailSender },
         { provide: PostService, useClass: MockingService },
         { provide: PermissionService, useClass: MockingService },
         LimitedUserTicketService,
@@ -159,6 +163,23 @@ describe('AuthService', () => {
         expect(err).toBeInstanceOf(BadRequestException);
         expect(err.message).toBe('Email already exist.');
       }
+    });
+
+    it('It does not throw any errors.', async () => {
+      let error: any;
+
+      try {
+        await authService.createUser({
+          username: `caoan${new Date().getTime()}`,
+          password: '123123',
+          retypedPassword: '123123',
+          email: `${new Date().getTime()}@gmail.com`,
+        });
+      } catch (err) {
+        error = err;
+      }
+
+      expect(error).toBeUndefined();
     });
   });
 });
