@@ -1,4 +1,5 @@
 import {
+  BaseEntity,
   Column,
   CreateDateColumn,
   Entity,
@@ -7,16 +8,16 @@ import {
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from './user.entity';
-import { Comment } from './comment.entity';
+import { User } from '../../user/entities/user.entity';
+import { Post } from './post.entity';
 
 @Entity()
-export class CommentRating {
+export class UserRatePost extends BaseEntity {
   @PrimaryColumn()
   userId: string;
 
   @PrimaryColumn()
-  commentId: string;
+  postId: string;
 
   @CreateDateColumn({
     type: 'timestamp',
@@ -32,14 +33,14 @@ export class CommentRating {
   })
   updatedAt: string;
 
-  @Column('enum', { enum: ['LIKE', 'DISLIKE'] })
+  @Column('enum', { enum: ['LIKE', 'DISLIKE', 'NONE'] })
   action: string;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'userId' })
   user: User;
 
-  @ManyToOne(() => Comment)
-  @JoinColumn({ name: 'commentId' })
-  comment: Comment;
+  @ManyToOne(() => Post)
+  @JoinColumn({ name: 'postId' })
+  post: Post;
 }

@@ -26,9 +26,9 @@ export class CreateNotificationDto {
 
   @IsOptional()
   @IsString()
-  prepObjectId: string;
+  prepObjectId?: string;
 
   @IsOptional()
   @IsEnum(['POST', 'USER', 'COMMENT'])
-  prepObjectType: string;
+  prepObjectType?: string;
 }

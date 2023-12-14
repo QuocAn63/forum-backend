@@ -1,13 +1,13 @@
 import { InjectRepository } from '@nestjs/typeorm';
-import { Comment } from 'src/common/entities/comment.entity';
-import { BaseService } from 'src/interfaces/base.service';
+import { BaseService } from '../../interfaces/base.service';
 import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { CommentCreateDto } from './dto/comment_create.dto';
 import { AuthUser } from '../auth/auth.guard';
-import { User } from 'src/common/entities/user.entity';
-import { Post } from 'src/common/entities/post.entitiy';
-import { CommentRating } from 'src/common/entities/userRateComment.entity';
+import { Comment } from './entities/comment.entity';
+import { CommentRating } from '../post/entities/userRateComment.entity';
+import { User } from '../user/entities/user.entity';
+import { Post } from '../post/entities/post.entity';
 
 @Injectable()
 export class CommentService extends BaseService<Comment, Repository<Comment>> {

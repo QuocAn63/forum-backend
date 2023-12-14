@@ -13,7 +13,10 @@ async function bootstrap() {
       errorHttpStatusCode: 403,
     }),
   );
+
   app.useGlobalInterceptors(new TransformInterceptor());
   await app.listen(3000);
+
+  console.log(`Application is running on: ${await app.getUrl()}`);
 }
 bootstrap();

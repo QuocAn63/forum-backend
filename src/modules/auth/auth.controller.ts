@@ -15,7 +15,6 @@ import { UserChangePasswordDto } from './dto/user_changePassword.dto';
 import { AuthGuard, AuthUser, Public } from './auth.guard';
 import { User } from './user.decorator';
 import { MailSenderService } from '../mailSender/mailSender.service';
-import { Domain } from 'src/common/decorators/domain';
 
 @Controller('auth')
 export class AuthController {
@@ -34,13 +33,9 @@ export class AuthController {
   @Public()
   @Post('register')
   async register(
-    @Domain() domain: URL,
     @Body() UserRegistrationDto: UserRegistrationDto,
   ): Promise<any> {
-    return await this.authService.createUser(
-      UserRegistrationDto,
-      domain.origin,
-    );
+    return await this.authService.createUser(UserRegistrationDto);
   }
 
   @Get('verify')
@@ -53,11 +48,8 @@ export class AuthController {
 
   @Post('resend')
   @UseGuards(AuthGuard)
-  async resendVerifyMail(@User() user: AuthUser, @Domain() domain: URL) {
-    return await this.mailSenderService.resendVerificationMail(
-      user,
-      domain.origin,
-    );
+  async resendVerifyMail(@User() user: AuthUser) {
+    return await this.mailSenderService.resendVerificationMail(user);
   }
 
   @Put('changepassword')

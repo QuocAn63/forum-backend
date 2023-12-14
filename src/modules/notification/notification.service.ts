@@ -1,9 +1,5 @@
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  NotificatioSubject,
-  Notification,
-} from 'src/common/entities/notification.entity';
-import { BaseService } from 'src/interfaces/base.service';
+import { BaseService } from '../../interfaces/base.service';
 import { Repository } from 'typeorm';
 import { CreateNotificationDto } from './dto/notification_create.dto';
 import { AuthUser } from '../auth/auth.guard';
@@ -12,6 +8,12 @@ import {
   NotificationType,
   NotificationURL,
 } from './notification.enum';
+import { ConfigService } from '@nestjs/config';
+import { EventsGateway } from '../events/events.gateway';
+import {
+  NotificatioSubject,
+  Notification,
+} from './entities/notification.entity';
 
 export class NotificationService extends BaseService<
   Notification,
@@ -22,6 +24,8 @@ export class NotificationService extends BaseService<
     private notificationRepo: Repository<Notification>,
     @InjectRepository(NotificatioSubject)
     private notificationSubjectRepo: Repository<NotificatioSubject>,
+    private configService: ConfigService,
+    private eventsGatway: EventsGateway,
   ) {
     super(notificationRepo);
   }
@@ -45,40 +49,16 @@ export class NotificationService extends BaseService<
     return notification;
   }
 
-  async pushNotification(notification: Notification) {
-    const subjects = await this.notificationSubjectRepo
-      .createQueryBuilder('subjects')
-      .where({ notificationId: notification.id })
-      .leftJoinAndSelect('subjects.user', 'user')
-      .select(['subjects', 'user.id', 'user.username', 'user.displayName'])
-      .orderBy('subjects.createdAt', 'DESC')
-      .getMany();
-
-    console.log(subjects);
-
-    if (!subjects.length) {
-      return 'Empty subjects';
-    }
-    const subjectLength = subjects.length;
-    let subjectDisplayText;
-
-    switch (subjectLength) {
-      case 1:
-        subjectDisplayText = subjects[0].user.displayName;
-        break;
-      case 2:
-        subjectDisplayText = `${subjects[0].user.displayName}, ${subjects[1].user.displayName}`;
-      default:
-        subjectDisplayText = `${subjects[0].user.displayName}, ${subjects[1].user.displayName} and others`;
-        break;
-    }
-
-    notification.content = notification.content.replaceAll(
-      /(\[:Subject\])/g,
-      subjectDisplayText,
+  async pushNotificationToUser(notification: Notification, appURL: string) {
+    const finalNotification = await this.getDetailNotification(
+      notification,
+      appURL,
     );
 
-    return notification.content;
+    await this.eventsGatway.pushNotification(
+      notification.sendTo.id,
+      finalNotification,
+    );
   }
 
   async createNotification(
@@ -111,16 +91,22 @@ export class NotificationService extends BaseService<
       where: { sendTo: { id: user.id } },
       order: { createdAt: 'desc' },
     });
-    let result;
+    const appURL = this.configService.get<string>('APP_URL');
+    if (!notifications.length) {
+      return [];
+    }
 
-    result = notifications.map(async (notification) => {
-      // notification.content.replaceAll(/\[:Subject\]/, )
-    });
-
-    return result;
+    return await Promise.all(
+      notifications.map(async (notification) => {
+        return await this.getDetailNotification(notification, appURL);
+      }),
+    );
   }
 
-  private async getDetailNotification(notification: Notification) {
+  private async getDetailNotification(
+    notification: Notification,
+    appURL: string,
+  ) {
     const type = notification.type;
     const subjects = await this.notificationSubjectRepo
       .createQueryBuilder('subjects')
@@ -130,7 +116,16 @@ export class NotificationService extends BaseService<
       .orderBy('subjects.createdAt', 'DESC')
       .getMany();
 
+    notification.url = (NotificationURL[type] as string)
+      .replaceAll(/\[:URL\]/g, appURL)
+      .replaceAll(/\[:PostId\]/g, notification.objectId);
+
     const subjectLength = subjects.length;
+
+    if (!subjectLength) {
+      return notification;
+    }
+
     let subjectDisplayText;
 
     switch (subjectLength) {
@@ -148,5 +143,7 @@ export class NotificationService extends BaseService<
       /(\[:Subject\])/g,
       subjectDisplayText,
     );
+
+    return notification;
   }
 }

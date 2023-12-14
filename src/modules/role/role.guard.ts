@@ -10,7 +10,7 @@ export class RoleGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
-    const permissions = this.reflector.getAllAndMerge<string[]>('Permission', [
+    const permissions = this.reflector.getAllAndMerge<string[]>('Permissions', [
       context.getHandler(),
       context.getClass(),
     ]);

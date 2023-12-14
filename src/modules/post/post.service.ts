@@ -4,23 +4,25 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Post } from 'src/common/entities/post.entitiy';
-import { BaseService } from 'src/interfaces/base.service';
+import { BaseService } from '../../interfaces/base.service';
 import { IsNull, Not, Repository } from 'typeorm';
 import { PostCreateDto } from './dto/post_create.dto';
 import { AuthUser } from '../auth/auth.guard';
 import { PostUpdateDto } from './dto/post_update.dto';
-import { SlugifyUtil } from 'src/utils/slugify.util';
-import { UserRatePost } from 'src/common/entities/UserRatePost.entity';
+import { SlugifyUtil } from '../../utils/slugify.util';
 import { nanoid } from 'nanoid';
-import { CommentService } from '../comment/comment.service';
+import { NotificationService } from '../notification/notification.service';
+import { ConfigService } from '@nestjs/config';
+import { Post } from './entities/post.entity';
+import { UserRatePost } from './entities/UserRatePost.entity';
 
 @Injectable()
 export class PostService extends BaseService<Post, Repository<Post>> {
   constructor(
     @InjectRepository(Post) private postRepo: Repository<Post>,
     @InjectRepository(UserRatePost) private rateRepo: Repository<UserRatePost>,
-    private commentService: CommentService,
+    private notificationService: NotificationService,
+    private configService: ConfigService,
   ) {
     super(postRepo);
   }
@@ -146,6 +148,25 @@ export class PostService extends BaseService<Post, Repository<Post>> {
       action,
     });
 
+    const postAuthor = (
+      await this.repository.findOne({ where: { id }, relations: ['author'] })
+    ).author;
+
+    const notification = await this.notificationService.storeNotification(
+      user,
+      {
+        objectId: id,
+        objectType: 'POST',
+        sendTo: postAuthor.id,
+        type: 'PostLike',
+      },
+    );
+
+    await this.notificationService.pushNotificationToUser(
+      notification,
+      this.configService.get<string>('APP_URL'),
+    );
+
     return { post: rate.postId, action: rate.action };
   }
 
@@ -165,10 +186,6 @@ export class PostService extends BaseService<Post, Repository<Post>> {
         'ur',
         (qb) => qb.andWhere({ action: 'DISLIKE' }),
       )
-      .loadRelationCountAndMap(
-        `${alias}.bookmarksCount`,
-        `${alias}.userBookmarks`,
-      )
       .loadRelationCountAndMap(`${alias}.commentsCount`, `${alias}.comments`);
   }
 
@@ -187,10 +204,6 @@ export class PostService extends BaseService<Post, Repository<Post>> {
         `${alias}.userReacts`,
         'ur',
         (qb) => qb.andWhere({ action: 'DISLIKE' }),
-      )
-      .loadRelationCountAndMap(
-        `${alias}.bookmarksCount`,
-        `${alias}.userBookmarks`,
       )
       .loadRelationCountAndMap(`${alias}.commentsCount`, `${alias}.comments`);
   }

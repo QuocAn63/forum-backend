@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LimitedUserTicket } from 'src/common/entities/limitedUserTicket.entity';
-import { BaseService } from 'src/interfaces/base.service';
+import { BaseService } from '../../interfaces/base.service';
 import { Repository } from 'typeorm';
 import { AuthUser } from '../auth/auth.guard';
 import * as moment from 'moment';
 import { CreateLimitedUserTicketDto } from './dto/limitedUserTicket_create.dto';
 import { PermissionService } from '../permission/permission.service';
+import { LimitedUserTicket } from './entities/limitedUserTicket.entity';
 
 @Injectable()
 export class LimitedUserTicketService extends BaseService<

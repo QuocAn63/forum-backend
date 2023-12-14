@@ -15,6 +15,7 @@ import { MailSenderService } from '../mailSender/mailSender.service';
 import * as moment from 'moment';
 import { UserService } from '../user/user.service';
 import { LimitedUserTicketService } from '../limitedUserTicket/limitedUserTicket.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -24,6 +25,7 @@ export class AuthService {
     private mailSenderService: MailSenderService,
     private limitedTicketService: LimitedUserTicketService,
     private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
 
   async validateUser(userSigninDto: UserLoginDto): Promise<any> {
@@ -47,7 +49,7 @@ export class AuthService {
     const limitedPermissions =
       (await this.limitedTicketService.getCurrentTicket(user))
         ?.limitedPermissions || '';
-    console.log(limitedPermissions);
+
     const accessToken = await this.jwtService.signAsync({
       username,
       id,
@@ -59,11 +61,9 @@ export class AuthService {
     return { message: 'Login success', token: accessToken };
   }
 
-  async createUser(
-    userRegistrationDto: UserRegistrationDto,
-    url: string,
-  ): Promise<any> {
+  async createUser(userRegistrationDto: UserRegistrationDto): Promise<any> {
     const { username, email, password, retypedPassword } = userRegistrationDto;
+    const url = this.configService.get<string>('APP_URL');
 
     if (password !== retypedPassword) {
       throw new BadRequestException('Password confirm does not match.');

@@ -1,9 +1,9 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { LimitedUserTicket } from 'src/common/entities/limitedUserTicket.entity';
 import { UserModule } from '../user/user.module';
 import { LimitedUserTicketService } from './limitedUserTicket.service';
 import { PermissionModule } from '../permission/permission.module';
+import { LimitedUserTicket } from './entities/limitedUserTicket.entity';
 
 @Module({
   imports: [
@@ -12,6 +12,6 @@ import { PermissionModule } from '../permission/permission.module';
     TypeOrmModule.forFeature([LimitedUserTicket]),
   ],
   providers: [LimitedUserTicketService],
-  exports: [LimitedUserTicketModule, LimitedUserTicketService],
+  exports: [LimitedUserTicketService],
 })
 export class LimitedUserTicketModule {}

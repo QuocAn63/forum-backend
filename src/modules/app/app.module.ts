@@ -12,13 +12,14 @@ import { CommentModule } from '../comment/comment.module';
 import { AuthModule } from '../auth/auth.module';
 import { MailSenderModule } from '../mailSender/mailSender.module';
 import { NotificationModule } from '../notification/notification.module';
+import { EventsModule } from '../events/events.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    DatabaseModule,
+    DatabaseModule.forRootAsync('TEST'),
     UserModule,
     AuthModule,
     RoleModule,
@@ -28,6 +29,7 @@ import { NotificationModule } from '../notification/notification.module';
     LimitedUserTicketModule,
     MailSenderModule,
     NotificationModule,
+    EventsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

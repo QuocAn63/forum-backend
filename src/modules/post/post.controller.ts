@@ -19,9 +19,9 @@ import { CommentCreateDto } from '../comment/dto/comment_create.dto';
 import { CommentService } from '../comment/comment.service';
 import { RoleGuard } from '../role/role.guard';
 import { Roles } from '../role/role.decorator';
+import { Permission } from '../permission/permission.constant';
 
-@UseGuards(AuthGuard, RoleGuard)
-@Roles('ADMIN', 'USER')
+@UseGuards(AuthGuard)
 @Controller('posts')
 export class PostController {
   constructor(
@@ -53,7 +53,7 @@ export class PostController {
   }
 
   @Post()
-  @Permissions('POST_UPLOAD')
+  @Permissions(Permission.UploadPost)
   async createPost(
     @Body() postCreateDto: PostCreateDto,
     @User() user: AuthUser,
@@ -62,7 +62,7 @@ export class PostController {
   }
 
   @Post(':id/rate')
-  @Permissions('POST_RATE')
+  @Permissions(Permission.RatePost)
   async ratePost(
     @User() user: AuthUser,
     @Param('id') id: string,
@@ -72,7 +72,7 @@ export class PostController {
   }
 
   @Post(':id/comment')
-  @Permissions('COMMENT_UPLOAD')
+  @Permissions(Permission.CreateComment)
   async comment(
     @User() user: AuthUser,
     @Param('id') id: string,
@@ -87,7 +87,6 @@ export class PostController {
   }
 
   @Patch(':id')
-  @Permissions('POST_UPDATE')
   async updatePost(
     @Body() postUpdateDto: PostUpdateDto,
     @Param('id') id: string,

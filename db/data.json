@@ -1,0 +1,79 @@
+{
+    "permissions": [
+        {
+            "id": "POST_UPLOAD",
+            "desciprtions": "User can upload posts."
+        },
+        {
+            "id": "POST_DELETE",
+            "desciprtions": "User can delete other user posts."
+        },
+        {
+            "id": "POST_RATE",
+            "desciprtions": "User can rate posts."
+        },
+        {
+            "id": "POST_BOOKMARK",
+            "desciprtions": "User can bookmark posts."
+        },
+        {
+            "id": "COMMENT_CREATE",
+            "desciprtions": "User can comment on posts."
+        },
+        {
+            "id": "COMMENT_DELETE",
+            "desciprtions": "User can delete other users comment."
+        },
+        {
+            "id": "COMMENT_RATE",
+            "desciprtions": "User can rate comments."
+        },
+        {
+            "id": "USER_BAN",
+            "desciprtions": "User can ban other users."
+        }
+    ],
+    "roles": [
+        {
+            "id": "USER",
+            "name": "User",
+            "permissions": [
+              "POST_UPLOAD",
+              "POST_RATE",
+              "POST_BOOKMARK",
+              "COMMENT_CREATE",
+              "COMMENT_RATE"
+            ]
+          },
+          {
+            "id": "ADMIN",
+            "name": "Administrator",
+            "permissions": [
+              "POST_UPLOAD",
+              "POST_RATE",
+              "POST_BOOKMARK",
+              "POST_DELETE",
+              "COMMENT_CREATE",
+              "COMMENT_RATE",
+              "COMMENT_DELETE",
+              "USER_BAN"
+            ]
+          }
+    ],
+    "users": [
+        {
+            "username": "user",
+            "password": "$2b$10$I61MUprz0yPclX/vyQQhYeenXDiA8PFxrmEdG1Oq5jIhol6fiVply",
+            "email": "caoan632002@gmail.com",
+            "displayName": "Quoc An - User",
+            "role": "USER"
+        },
+        {
+            "username": "admin",
+            "password": "$2b$10$AjwIBSUvy/x/c5ZJ6ui2PeNcBReHT92N7YG6EgxUXO6SOvCzoNiG.",
+            "email": "caoan632002dev@gmail.com",
+            "displayName": "Quoc An - Admin",
+            "role": "ADMIN"
+        }
+    ]
+}

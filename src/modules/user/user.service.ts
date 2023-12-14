@@ -1,11 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from '../../common/entities/user.entity';
 import { Repository } from 'typeorm';
-import { BaseService } from 'src/interfaces/base.service';
+import { BaseService } from '../../interfaces/base.service';
 import { PostService } from '../post/post.service';
 import { AuthUser } from '../auth/auth.guard';
 import { ChangeDisplayNameDto } from './dto/user_changename.dto';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class UserService extends BaseService<User, Repository<User>> {

@@ -11,11 +11,11 @@ import * as moment from 'moment';
 import { nanoid } from 'nanoid';
 import { createTransport } from 'nodemailer';
 import * as Mail from 'nodemailer/lib/mailer';
-import { EmailVerificationToken } from '../../common/entities/emailVerificationToken.entity';
 import { Repository } from 'typeorm';
 import { verificationEmailHtml } from './templates/verification.html';
 import { AuthUser } from '../auth/auth.guard';
 import { UserService } from '../user/user.service';
+import { EmailVerificationToken } from './entities/emailVerificationToken.entity';
 
 @Injectable()
 export class MailSenderService {
@@ -88,15 +88,16 @@ export class MailSenderService {
     return (await verificationEmail.save()).token;
   }
 
-  async resendVerificationMail(user: AuthUser, domain: string) {
+  async resendVerificationMail(user: AuthUser) {
     const isEmailVerified = await this.userService.isUserEmailVerified(user);
+    const url = this.configService.get<string>('APP_URL');
 
     if (isEmailVerified) {
       throw new BadRequestException("User's email is already verified.");
     }
 
     await this.emailVerificationTokenRepo.delete({ userId: user.id });
-    await this.sendVerifyMail(user, domain);
+    await this.sendVerifyMail(user, url);
   }
 
   async findOne(userId: string, token: string) {
