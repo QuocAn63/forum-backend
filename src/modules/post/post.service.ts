@@ -14,7 +14,7 @@ import { nanoid } from 'nanoid';
 import { NotificationService } from '../notification/notification.service';
 import { ConfigService } from '@nestjs/config';
 import { Post } from './entities/post.entity';
-import { UserRatePost } from './entities/UserRatePost.entity';
+import { UserRatePost } from './entities/userRatePost.entity';
 
 @Injectable()
 export class PostService extends BaseService<Post, Repository<Post>> {

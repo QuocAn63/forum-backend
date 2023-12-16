@@ -10,7 +10,6 @@ import {
   ParseFilePipe,
   MaxFileSizeValidator,
   FileTypeValidator,
-  BadRequestException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { AuthGuard, AuthUser, Public } from '../auth/auth.guard';
@@ -20,21 +19,14 @@ import { User } from '../auth/user.decorator';
 import { ChangeDisplayNameDto } from './dto/user_changename.dto';
 import { UpdateUserInformationsDto } from './dto/user_updateInformations.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { StorageEngine, diskStorage } from 'multer';
 import { ConfigService } from '@nestjs/config';
 
 @Controller('users')
 export class UserController {
-  avatarStorage: StorageEngine;
-
   constructor(
     private readonly userService: UserService,
-    private configService: ConfigService,
   ) {
-    // this.avatarStorage = diskStorage({
-    //   destination: this.configService.getOrThrow("AVATARS_FOLDER"),
-    //   filename:
-    // })
+
   }
 
   @Public()
@@ -88,7 +80,6 @@ export class UserController {
     file: Express.Multer.File,
     @User() user: AuthUser,
   ) {
-    console.log(file.destination);
     return this.userService.updateAvatar(user, file);
   }
 }

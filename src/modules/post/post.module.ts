@@ -6,7 +6,7 @@ import { CommentModule } from '../comment/comment.module';
 import { UserModule } from '../user/user.module';
 import { NotificationModule } from '../notification/notification.module';
 import { Post } from './entities/post.entity';
-import { UserRatePost } from './entities/UserRatePost.entity';
+import { UserRatePost } from './entities/userRatePost.entity';
 
 @Module({
   imports: [

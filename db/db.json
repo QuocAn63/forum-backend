@@ -1,0 +1,17 @@
+{
+    "users": [
+        {
+            "username": "user",
+            "password": "$2b$10$cNUKJZkvNC7dQTO8ujvowehykdlXN5sAWMU4XkTvOB01M7GktXCnq",
+            "email": "caoan632002@gmail.com"
+        },
+        {
+            "username": "admin",
+            "password": "$2b$10$1o4uaaHroHB1Z3ktvlw1fOUpEMrW/hDaEi6W.j7fm5lu7dYK80qP2",
+            "email": "caoan632002dev@gmail.com"
+        }
+    ],
+    "roles": {
+        
+    }
+}

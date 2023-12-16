@@ -10,7 +10,7 @@ import {
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { UserRatePost } from './UserRatePost.entity';
+import { UserRatePost } from './userRatePost.entity';
 import { User } from '../../user/entities/user.entity';
 import { Comment } from '../../comment/entities/comment.entity';
 

@@ -9,6 +9,9 @@ import { NotificationModule } from '../notification/notification.module';
 import { User } from './entities/user.entity';
 import { MulterModule } from '@nestjs/platform-express';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { diskStorage } from 'multer';
+import { basename, extname, parse } from 'path';
+import { nanoid } from 'nanoid';
 
 @Module({
   imports: [
@@ -18,8 +21,19 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     MulterModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
+        const avatarStorage = diskStorage({
+          destination: configService.getOrThrow("AVATARS_FOLDER"),
+          filename: (req, file, cb) => {
+            const ext = extname(file.originalname)
+            const filename = parse(file.originalname).name.replace(/\s/g, "") + nanoid(6)
+    
+            cb(null, filename+ext)
+          }
+        })
+
         return {
           dest: configService.getOrThrow('AVATARS_FOLDER'),
+          storage: avatarStorage
         };
       },
       inject: [ConfigService],
