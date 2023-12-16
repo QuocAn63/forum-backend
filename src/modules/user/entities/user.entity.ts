@@ -28,6 +28,9 @@ export class User extends BaseEntity {
   @Column({ length: 20, type: 'varchar', nullable: true })
   displayName: string;
 
+  @Column({ type: 'text', nullable: true })
+  avatar: string;
+
   @Column({ type: 'date', nullable: true })
   dob: string;
 

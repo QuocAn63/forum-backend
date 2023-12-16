@@ -1,7 +1,6 @@
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
 import { join } from 'path';
-import { DataSource } from 'typeorm';
 
 export const DevDatabaseOption: TypeOrmModuleAsyncOptions = {
   imports: [ConfigModule],
@@ -36,7 +35,7 @@ export const TestDatabaseOption: TypeOrmModuleAsyncOptions = {
     password: configService.getOrThrow('DB_PASSWORD'),
     database: configService.getOrThrow('DB_TEST_DBNAME'),
     schema: configService.getOrThrow('DB_SCHEMA'),
-    entities: ['../**/entities/*.entity.ts'],
+    entities: ['src/modules/**/entities/*.entity.ts'],
     autoLoadEntities: true,
     synchronize: configService.getOrThrow('DB_SYCHRONIZE'),
   }),

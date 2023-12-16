@@ -13,13 +13,14 @@ import { AuthModule } from '../auth/auth.module';
 import { MailSenderModule } from '../mailSender/mailSender.module';
 import { NotificationModule } from '../notification/notification.module';
 import { EventsModule } from '../events/events.module';
+import { AvatarModule } from '../avatar/avatar.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    DatabaseModule.forRootAsync('TEST'),
+    DatabaseModule.forRootAsync('DEV'),
     UserModule,
     AuthModule,
     RoleModule,
@@ -30,6 +31,7 @@ import { EventsModule } from '../events/events.module';
     MailSenderModule,
     NotificationModule,
     EventsModule,
+    AvatarModule,
   ],
   controllers: [AppController],
   providers: [AppService],

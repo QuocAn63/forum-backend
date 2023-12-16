@@ -40,7 +40,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid password.');
     }
 
-    await this.userService.updateUserLastLoginTime(user.id);
+    await this.userService.updateLastLoginTime(user.id);
 
     const { password: _, id } = user;
 
@@ -112,7 +112,7 @@ export class AuthService {
       throw new BadRequestException('Token expired.');
     }
 
-    await this.userService.updateUserMailVerification(
+    await this.userService.updateMailVerification(
       verificationEmailData.userId,
       true,
     );
@@ -143,7 +143,7 @@ export class AuthService {
       throw new BadRequestException('Password not match.');
     }
 
-    return this.userService.updateUserPassword(
+    return this.userService.updatePassword(
       user,
       await HashUtil.hash(newPassword),
     );
