@@ -24,14 +24,13 @@ export class CommentService extends BaseService<Comment, Repository<Comment>> {
     postId: string,
     commentCreateDto: CommentCreateDto,
   ) {
-    const userObj = new User();
-    userObj.id = user.id;
-    const postObj = new Post();
-    postObj.id = postId;
-
     const commentObj = this.repository.create({
-      author: userObj,
-      post: postObj,
+      author: {
+        id: user.id,
+      },
+      post: {
+        id: postId,
+      },
       content: commentCreateDto.content,
     });
 

@@ -40,10 +40,10 @@ export class Notification extends BaseEntity {
   createdAt: string;
 
   @Column({
-    type: 'boolean',
-    default: false,
+    type: 'timestamp',
+    nullable: true,
   })
-  readAt: boolean;
+  readAt: string;
 
   @Column({
     type: 'text',

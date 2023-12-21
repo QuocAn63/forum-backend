@@ -1,10 +1,13 @@
-import { IsNotEmpty, MaxLength } from "class-validator";
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, MaxLength } from 'class-validator';
 
 export class PermissionCreateDto {
-    @IsNotEmpty()
-    @MaxLength(20)
-    id: string
+  @ApiProperty()
+  @IsNotEmpty()
+  @MaxLength(20)
+  id: string;
 
-    @IsNotEmpty()
-    description: string
+  @ApiProperty()
+  @IsNotEmpty()
+  description: string;
 }

@@ -48,7 +48,6 @@ export class AuthGuard implements CanActivate {
 
       payload.role.permissions = payload.role.permissions.split(',');
       payload.limitedPermissions = payload.limitedPermissions?.split(',');
-
       request['user'] = payload;
     } catch (err) {
       throw new UnauthorizedException(err);

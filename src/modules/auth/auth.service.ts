@@ -1,12 +1,12 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
   forwardRef,
 } from '@nestjs/common';
-import { UserLoginDto, UserRegistrationDto } from './dto';
 import { HashUtil } from '../../utils/hash.util';
 import { JwtService } from '@nestjs/jwt';
 import { UserChangePasswordDto } from './dto/user_changePassword.dto';
@@ -16,6 +16,8 @@ import * as moment from 'moment';
 import { UserService } from '../user/user.service';
 import { LimitedUserTicketService } from '../limitedUserTicket/limitedUserTicket.service';
 import { ConfigService } from '@nestjs/config';
+import { UserLoginDto } from './dto/user_login.dto';
+import { UserRegistrationDto } from './dto/user_create.dto';
 
 @Injectable()
 export class AuthService {
@@ -82,11 +84,11 @@ export class AuthService {
 
     const hashedPassword = await HashUtil.hash(password);
 
-    const newUser = await this.userService.createNewUser(
+    const newUser = await this.userService.createNewUser({
       username,
       email,
-      hashedPassword,
-    );
+      password: hashedPassword,
+    });
 
     await this.mailSenderService.sendVerifyMail(newUser, url);
   }
@@ -109,7 +111,7 @@ export class AuthService {
     const isLated = current.isAfter(moment(verificationEmailData.expiredAt));
 
     if (isLated) {
-      throw new BadRequestException('Token expired.');
+      throw new ForbiddenException('Token expired.');
     }
 
     await this.userService.updateMailVerification(

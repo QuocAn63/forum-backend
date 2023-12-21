@@ -11,6 +11,8 @@ import { AuthUser } from '../auth/auth.guard';
 import { ChangeDisplayNameDto } from './dto/user_changename.dto';
 import { User } from './entities/user.entity';
 import { UpdateUserInformationsDto } from './dto/user_updateInformations.dto';
+import { UserCreateDto } from './dto/userCreate.dto';
+import { PaginateMetadata } from 'src/interfaces/response.interface';
 
 @Injectable()
 export class UserService extends BaseService<User, Repository<User>> {
@@ -33,8 +35,8 @@ export class UserService extends BaseService<User, Repository<User>> {
     return publicInfo;
   }
 
-  findUserPosts(username: string): Promise<any> {
-    return this.postService.findPostsOfUser(username);
+  findUserPosts(username: string, paginate: PaginateMetadata): Promise<any> {
+    return this.postService.findPostsOfUser(username, paginate);
   }
 
   findUserByUsername(username: string) {
@@ -46,7 +48,8 @@ export class UserService extends BaseService<User, Repository<User>> {
       .getOne();
   }
 
-  createNewUser(username: string, email: string, password: string) {
+  createNewUser(data: UserCreateDto) {
+    const { email, password, username } = data;
     return this.repository.save({ username, password, email });
   }
 

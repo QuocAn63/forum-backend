@@ -14,6 +14,7 @@ import {
   NotificatioSubject,
   Notification,
 } from './entities/notification.entity';
+import { PaginateMetadata } from 'src/interfaces/response.interface';
 
 export class NotificationService extends BaseService<
   Notification,
@@ -86,10 +87,12 @@ export class NotificationService extends BaseService<
     });
   }
 
-  async findUserNotifications(user: AuthUser) {
+  async findUserNotifications(user: AuthUser, paginate: PaginateMetadata) {
     let notifications = await this.repository.find({
       where: { sendTo: { id: user.id } },
       order: { createdAt: 'desc' },
+      skip: (paginate.page - 1) * paginate.pageSize,
+      take: paginate.pageSize,
     });
     const appURL = this.configService.get<string>('APP_URL');
     if (!notifications.length) {
@@ -100,6 +103,16 @@ export class NotificationService extends BaseService<
       notifications.map(async (notification) => {
         return await this.getDetailNotification(notification, appURL);
       }),
+    );
+  }
+
+  async updateNotificationStatus(user: AuthUser, notiId: string) {
+    return await this.repository.update(
+      {
+        id: notiId,
+        sendTo: { id: user.id },
+      },
+      { readAt: new Date().toISOString() },
     );
   }
 

@@ -6,9 +6,21 @@ import { RoleGuard } from '../role/role.guard';
 import { Roles } from '../role/role.decorator';
 import { CreateLimitedUserTicketDto } from '../limitedUserTicket/dto/limitedUserTicket_create.dto';
 import { LimitedUserTicketService } from '../limitedUserTicket/limitedUserTicket.service';
+import { RolesEnum } from '../role/role.constant';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiInternalServerErrorResponse,
+  ApiOkResponse,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
+import { Paginate } from 'src/common/decorators/paginate.decorator';
 
+@ApiTags('Permissions')
 @UseGuards(AuthGuard, RoleGuard)
-@Roles('ADMIN')
+@Roles(RolesEnum.ADMIN)
 @Controller('permissions')
 export class PermissionController {
   constructor(
@@ -16,21 +28,23 @@ export class PermissionController {
     private limitedTicketService: LimitedUserTicketService,
   ) {}
 
+  @ApiBearerAuth()
+  @ApiOkResponse({ description: 'Return list of permissions.' })
+  @ApiUnauthorizedResponse({ description: 'User are not allowed to access.' })
+  @ApiInternalServerErrorResponse({ description: 'Server error.' })
   @Get()
-  async getListOfPermission() {
+  async getListOfPermission(@Paginate() paginate: any) {
+    console.log(paginate);
     return await this.permissionService.index();
   }
 
+  @ApiBearerAuth()
+  @ApiCreatedResponse({ description: 'Permission created.' })
+  @ApiBadRequestResponse({ description: 'Permission already exist.' })
+  @ApiUnauthorizedResponse({ description: 'User are not allowed to access.' })
+  @ApiInternalServerErrorResponse({ description: 'Server error.' })
   @Post()
   async createPermission(@Body() createPermissionDto: PermissionCreateDto) {
     return await this.permissionService.store(createPermissionDto);
-  }
-
-  @Post('limit/:id')
-  async createTicket(
-    @Param('id') id: string,
-    @Body() data: CreateLimitedUserTicketDto,
-  ) {
-    return this.limitedTicketService.createNewTicket(id, data);
   }
 }

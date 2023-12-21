@@ -40,6 +40,10 @@ export class LimitedUserTicketService extends BaseService<
     });
   }
 
+  async findTicketsOfUser(id: string): Promise<any> {
+    return this.repository.find({ where: { user: { id } } });
+  }
+
   async getCurrentTicket(data: string): Promise<any>;
   async getCurrentTicket(data: AuthUser): Promise<any>;
   async getCurrentTicket(data: any): Promise<any> {

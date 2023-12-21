@@ -18,7 +18,6 @@ export class RoleGuard implements CanActivate {
     const userPerms = request.user.role.permissions as string[];
     const userLimitedPerms = request.user.limitedPermissions as string[];
     const isRoleAllowed = roles.includes(request.user.role.id);
-
     if (!roles.length) {
       return false;
     }

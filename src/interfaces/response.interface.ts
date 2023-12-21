@@ -1,5 +1,9 @@
-export interface ResponseData {
+export interface PaginateReponseData {
   data: any;
-  message?: string;
-  info?: any;
+  metadata: PaginateMetadata & { total: number };
+}
+
+export interface PaginateMetadata {
+  page: number;
+  pageSize: number;
 }

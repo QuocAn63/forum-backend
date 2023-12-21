@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   ArrayNotEmpty,
   ArrayUnique,
@@ -7,11 +8,13 @@ import {
 } from 'class-validator';
 
 export class RoleUpdatePermissionDto {
+  @ApiProperty()
   @IsOptional()
   @IsArray()
   @ArrayUnique()
   roles: string[];
 
+  @ApiProperty()
   @IsOptional()
   @IsArray()
   @ArrayUnique()

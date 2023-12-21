@@ -15,6 +15,7 @@ import { NotificationService } from '../notification/notification.service';
 import { ConfigService } from '@nestjs/config';
 import { Post } from './entities/post.entity';
 import { UserRatePost } from './entities/userRatePost.entity';
+import { PaginateMetadata } from 'src/interfaces/response.interface';
 
 @Injectable()
 export class PostService extends BaseService<Post, Repository<Post>> {
@@ -34,19 +35,21 @@ export class PostService extends BaseService<Post, Repository<Post>> {
       .getOne();
 
     if (!post) throw new NotFoundException('Post not found.');
-
     return post;
   }
 
-  async findMany(): Promise<any> {
-    return this.listTypePost()
+  async findMany(paginate: PaginateMetadata): Promise<any> {
+    return this.listTypePost(paginate)
       .where({ status: 'PUBLIC' })
       .select(['posts', 'author.username', 'author.displayName', 'author.id'])
       .getMany();
   }
 
-  async findManyDeleted(user: AuthUser): Promise<any> {
-    return this.listTypePost()
+  async findManyDeleted(
+    user: AuthUser,
+    paginate: PaginateMetadata,
+  ): Promise<any> {
+    return this.listTypePost(paginate)
       .where({
         deletedAt: Not(IsNull()),
         author: { id: user.id },
@@ -118,10 +121,15 @@ export class PostService extends BaseService<Post, Repository<Post>> {
     return result.affected;
   }
 
-  async findPostsOfUser(username: string): Promise<any> {
-    const posts = await this.listTypePost()
+  async findPostsOfUser(
+    username: string,
+    paginate: PaginateMetadata,
+  ): Promise<any> {
+    const posts = await this.listTypePost(paginate)
       .where({ author: { username }, status: 'PUBLIC' })
       .select(['posts', 'author.username', 'author.displayName', 'author.id'])
+      .offset((paginate.page - 1) * paginate.pageSize)
+      .limit(paginate.pageSize)
       .getMany();
 
     return posts;
@@ -189,7 +197,7 @@ export class PostService extends BaseService<Post, Repository<Post>> {
       .loadRelationCountAndMap(`${alias}.commentsCount`, `${alias}.comments`);
   }
 
-  private listTypePost(alias = 'posts') {
+  private listTypePost(paginate: PaginateMetadata, alias = 'posts') {
     return this.repository
       .createQueryBuilder(alias)
       .leftJoinAndSelect(`${alias}.author`, 'author')
@@ -205,6 +213,8 @@ export class PostService extends BaseService<Post, Repository<Post>> {
         'ur',
         (qb) => qb.andWhere({ action: 'DISLIKE' }),
       )
-      .loadRelationCountAndMap(`${alias}.commentsCount`, `${alias}.comments`);
+      .loadRelationCountAndMap(`${alias}.commentsCount`, `${alias}.comments`)
+      .offset((paginate.page - 1) * paginate.pageSize)
+      .limit(paginate.pageSize);
   }
 }

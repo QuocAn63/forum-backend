@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   ArrayNotEmpty,
   IsArray,
@@ -7,11 +8,13 @@ import {
 } from 'class-validator';
 
 export class CreateLimitedUserTicketDto {
+  @ApiProperty()
   @IsNotEmpty()
   @IsArray()
   @ArrayNotEmpty()
   permissions: string[];
 
+  @ApiProperty()
   @IsNotEmpty()
   @IsString()
   @Matches(/\d+[hdwM]$/)

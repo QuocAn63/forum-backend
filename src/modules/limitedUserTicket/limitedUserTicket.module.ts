@@ -4,6 +4,7 @@ import { UserModule } from '../user/user.module';
 import { LimitedUserTicketService } from './limitedUserTicket.service';
 import { PermissionModule } from '../permission/permission.module';
 import { LimitedUserTicket } from './entities/limitedUserTicket.entity';
+import { LimitedUserTicketController } from './limitedUserTicket.controller';
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { LimitedUserTicket } from './entities/limitedUserTicket.entity';
     forwardRef(() => PermissionModule),
     TypeOrmModule.forFeature([LimitedUserTicket]),
   ],
+  controllers: [LimitedUserTicketController],
   providers: [LimitedUserTicketService],
   exports: [LimitedUserTicketService],
 })

@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { DataSource } from 'typeorm';
+import { DataSource, EntityManager } from 'typeorm';
 
 export const DataSourceProvider = {
   provide: DataSource,
